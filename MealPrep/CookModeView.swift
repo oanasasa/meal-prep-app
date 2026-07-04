@@ -178,9 +178,16 @@ struct CookModeView: View {
             }
             // Decrement the fridge by exactly what this session used, once —
             // only on the false→true transition, so re-toggling doesn't
-            // double-subtract.
-            if entry.isCooked && !wasCooked, let cookPlan {
+            // double-subtract. Also freeze exactly what was cooked, so an
+            // edit to the variant afterward can't silently rewrite history.
+            if entry.isCooked && !wasCooked, let cookPlan, let session, let week {
                 decrementFridge(by: cookPlan.batchGrams)
+                let cookedMeals = session.coversDayOffsets
+                    .compactMap { week.day($0) }
+                    .flatMap { $0.meals }
+                    .filter { $0.cookSessionID == sessionID }
+                    .map(\.meal)
+                entry.recordSnapshot(cookedMeals)
             }
         } label: {
             Label(isCooked ? "Marked as cooked" : "Mark session as cooked",

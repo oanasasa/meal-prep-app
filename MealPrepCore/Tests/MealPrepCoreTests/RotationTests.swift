@@ -65,4 +65,39 @@ struct RotationTests {
         let week = try planner().plan(gymThursday: false, startIndex: 2)
         #expect(week.days.first?.variantID == "V3")
     }
+
+    // MARK: - isActive filtering
+
+    @Test func inactiveVariantsAreSkippedByRotation() throws {
+        let db = try IngredientDatabase.loadBundled()
+        let full = try VariantLibrary.loadBundled()
+        // Deactivate V2 — rotation should only cycle V1, V3, V4.
+        let withV2Retired = full.all.map { v in
+            v.id == "V2" ? DayVariant(id: v.id, name: v.name, meals: v.meals, isActive: false) : v
+        }
+        let lib = VariantLibrary(variants: withV2Retired)
+        let planner = VariantRotationPlanner(library: lib,
+                                             portioner: VariantPortioner(calculator: PortionCalculator(database: db)))
+        let week = try planner.plan(gymThursday: false, startIndex: 0)
+        #expect(!week.days.map(\.variantID).contains("V2"))
+        #expect(week.days.map(\.variantID) == ["V1", "V3", "V4", "V1", "V3", "V4", "V1"])
+    }
+
+    @Test func noActiveVariantsProducesAnEmptyWeek() throws {
+        let db = try IngredientDatabase.loadBundled()
+        let full = try VariantLibrary.loadBundled()
+        let allRetired = full.all.map { DayVariant(id: $0.id, name: $0.name, meals: $0.meals, isActive: false) }
+        let lib = VariantLibrary(variants: allRetired)
+        let planner = VariantRotationPlanner(library: lib,
+                                             portioner: VariantPortioner(calculator: PortionCalculator(database: db)))
+        let week = try planner.plan(gymThursday: false)
+        #expect(week.days.isEmpty)
+    }
+
+    @Test func isActiveDefaultsToTrue() throws {
+        // Matches the decoder's `decodeIfPresent(...) ?? true` fallback for
+        // seed data written before this field existed.
+        let variant = DayVariant(id: "VX", name: "Test", meals: [])
+        #expect(variant.isActive)
+    }
 }

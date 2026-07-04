@@ -10,8 +10,10 @@ struct MealPrepApp: App {
             RootView()
                 .environment(model)
         }
-        // Local-first persistence: the trainer plan + per-day tracking.
+        // Local-first persistence: the trainer plan + per-day tracking + the
+        // editable plan (variants/meals/ingredients, seeded from bundled JSON).
         .modelContainer(for: [TrainerPlanEntity.self, DailyLogEntity.self, CookSessionLogEntity.self,
-                             FridgeItemEntity.self])
+                             FridgeItemEntity.self, VariantEntity.self, MealEntity.self,
+                             VariantChangeEntity.self, IngredientEntity.self])
     }
 }

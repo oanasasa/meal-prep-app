@@ -30,10 +30,12 @@ public struct VariantWeek: Equatable, Sendable {
     }
 }
 
-/// Assigns one trainer variant per day, rotating V1→V4 so any meal repeats at
-/// most every 4 days (instruction 2). Batch-safe meals on cooked days are tied
-/// to the rolling 2-day cook sessions; fresh/assembly meals (and Sunday, the
-/// uncovered day) are made fresh.
+/// Assigns one trainer variant per day, rotating through the ACTIVE variants
+/// only (a retired variant is skipped, not deleted — instruction: "deactivate
+/// instead of deleting, history stays intact") so any meal repeats at most
+/// every N days for N active variants. Batch-safe meals on cooked days are
+/// tied to the rolling 2-day cook sessions; fresh/assembly meals (and Sunday,
+/// the uncovered day) are made fresh.
 public struct VariantRotationPlanner: Sendable {
     public let library: VariantLibrary
     public let portioner: VariantPortioner
@@ -46,7 +48,7 @@ public struct VariantRotationPlanner: Sendable {
     public func plan(gymThursday: Bool,
                      weekStartMonday: Date = Date(),
                      startIndex: Int = 0) throws -> VariantWeek {
-        let variants = library.all
+        let variants = library.all.filter(\.isActive)
         guard !variants.isEmpty else {
             return VariantWeek(weekStartMonday: weekStartMonday, gymThursday: gymThursday,
                                days: [], cookSessions: CookScheduler.sessions(gymThursday: gymThursday))

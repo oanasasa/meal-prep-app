@@ -28,16 +28,24 @@ meal-prep-app/
 │   ├── RestockView.swift        #   grocery checklist → fridge merge + substitution trigger
 │   ├── FridgeItemEntity.swift   #   SwiftData: one row per ingredient in stock
 │   ├── OnboardingView.swift     #   first-run: macros → schedule → done (3 screens)
+│   ├── VariantEntity.swift      #   SwiftData: editable variant/meal/change-history
+│   ├── IngredientEntity.swift   #   SwiftData: user-added ingredients
+│   ├── PlanDataSeeder.swift     #   copies bundled variants.json into SwiftData once
+│   ├── VariantsListView.swift   #   all variants, "+" for a new one from scratch
+│   ├── VariantDetailView.swift  #   one variant's meals, active toggle, duplicate, history
+│   ├── MealEditorView.swift     #   edit a meal — live day-total delta vs target
+│   ├── IngredientPickerView.swift # search bundled+custom, or add a new ingredient
+│   ├── VariantHistoryView.swift #   change history + restore a previous version
 │   └── Assets.xcassets
 └── MealPrepCore/                # pure Swift package: all the tested logic
     ├── Package.swift
     ├── Sources/MealPrepCore/    #   MacroVector, Ingredient, PortionCalculator, SubstitutionEngine,
-    │   │                            DayVariant/CookStep, CookPlanBuilder, GroceryListBuilder,
+    │   │                            DayVariant(+isActive)/CookStep, CookPlanBuilder, GroceryListBuilder,
     │   │                            NotificationPlanBuilder, VariantRotationPlanner, CookScheduler,
     │   │                            FridgeExpiry/FridgeInventory, RestockPlanner, VariantFallback…
-    │   └── Resources/            #   ingredients.json (138), recipes.json (20), variants.json (V1–V4)
+    │   └── Resources/            #   ingredients.json (138), recipes.json (20), variants.json (V1–V4, seed only)
     ├── Sources/MealPrepDemo/    #   CLI demo of the substitution math
-    ├── Tests/                   #   94 unit tests (Swift Testing)
+    ├── Tests/                   #   98 unit tests (Swift Testing)
     └── Makefile
 ```
 
@@ -166,7 +174,35 @@ simmering pot all run unattended at once). See
     `.minimumScaleFactor` as a safety net.
   - **Dark mode** — verified live (Home, a substitution sheet); works
     automatically since every view already used semantic system colors.
-- **94 passing tests** across all phases' core logic.
+- **Phase 6: done.** Plan editor — the variants/meals/ingredient database moved
+  from read-only bundled JSON into SwiftData (seeded once on first launch by
+  `PlanDataSeeder`, then authoritative), making the whole plan editable:
+  - **Edit a meal** (`MealEditorView`) — rename, retag batch-safe/fresh-only,
+    add/remove/re-gram ingredients (stepper, live), with a **live day-total vs
+    target banner** for both Her and Husband (propagated via his multiplier),
+    colour-coded green/orange/red at ±5%/±10%/beyond.
+  - **Create variants** — duplicate an existing one as a starting point, or
+    build one from scratch (`VariantsListView`'s "+"). The rotation now
+    supports any number of variants and only cycles through **active** ones
+    (`DayVariant.isActive`, filtered in `VariantRotationPlanner`).
+  - **Retire, don't delete** — an inactive variant drops out of the rotation
+    (and out of the fridge-fit fallback suggestion) but its data and history
+    stay intact.
+  - **Edit macro targets with a drift warning** — changing daily kcal/protein/
+    carbs/fat in Plan now live-lists which active variants fall outside ±5% of
+    the new target, computed from the same `MacroDelta` the substitution engine
+    uses.
+  - **Add new ingredients** inline from the meal editor's ingredient picker —
+    name, category, per-100g macros, substitution group; IDs are auto-slugged
+    and de-duplicated against the bundled catalogue.
+  - **Change history & restore** (`VariantHistoryView`) — every edit snapshots
+    the variant's prior state; tapping a past entry restores it (and that
+    restore is itself recorded, so it can be undone).
+  - **Already-cooked weeks are protected** — marking a cook session as cooked
+    freezes exactly what was cooked (`CookSessionLogEntity.snapshotData`), so
+    editing a variant afterward can't rewrite that history. Not-yet-cooked
+    weeks reflect edits immediately (useful before you've shopped/cooked).
+- **98 passing tests** across all phases' core logic.
 
 ### Known caveats / deliberate scope calls
 
@@ -184,9 +220,17 @@ simmering pot all run unattended at once). See
   (only grocery/morning-summary/evening-nudge times are); the underlying
   `TimeOfDay` plumbing supports it, it's just not wired into a picker yet.
 - The **variant rotation doesn't optimize cook-session time balance** — pairing
-  is a fixed 4-day cycle, so some week configurations land a heavier session
-  than others (still verified to fit comfortably under an hour with the current
-  V1–V4 set, but this isn't a general guarantee for arbitrary future variants).
+  is a sequential cycle over however many variants are active, so some week
+  configurations land a heavier session than others (still verified to fit
+  comfortably under an hour with the current V1–V4 set, but this isn't a
+  general guarantee for arbitrary user-created variants).
+- **No deleting a variant or a meal outright** — only deactivate (variants) is
+  supported, matching "history stays intact." Removing a whole meal from a
+  variant (as opposed to editing its ingredients) isn't wired up either; not
+  explicitly requested, and easy to add the same way "Add meal" works.
+- **No dedicated screen for managing custom ingredients** — they're added
+  inline from the meal editor's ingredient picker; there's no top-level list to
+  review/edit/remove ones you've already added.
 
 ### Phase 2 generator notes (legacy `WeeklyPlanGenerator`, superseded by variants for the trainer's actual plan)
 

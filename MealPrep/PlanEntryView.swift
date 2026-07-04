@@ -7,7 +7,20 @@ import MealPrepCore
 struct PlanEntryView: View {
     @Bindable var plan: TrainerPlanEntity
     @Environment(AppModel.self) private var model
+    @Query(sort: \VariantEntity.sortOrder) private var variantEntities: [VariantEntity]
     @State private var showGroceryList = false
+
+    /// Active variants whose day total (at the CURRENTLY-TYPED targets, before
+    /// saving) drifts outside ±5% of the new daily kcal target — "the trainer
+    /// changed the numbers, not the food," so this flags what to go adjust.
+    private var driftingVariants: [(name: String, kcal: Double, deltaKcal: Double)] {
+        variantEntities.filter(\.isActive).compactMap { variant in
+            guard let day = try? model.portioner.dayMacros(for: variant.asDayVariant()) else { return nil }
+            let delta = MacroDelta(target: plan.daily, actual: day)
+            guard !delta.isWithinTolerance(0.05, enforcing: [.kcal]) else { return nil }
+            return (variant.name, day.kcal, delta.absolute.kcal)
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -17,6 +30,10 @@ struct PlanEntryView: View {
                     macroField("Protein", value: $plan.dailyProtein, unit: "g")
                     macroField("Carbs", value: $plan.dailyCarbs, unit: "g")
                     macroField("Fat", value: $plan.dailyFat, unit: "g")
+
+                    if !driftingVariants.isEmpty {
+                        driftWarning
+                    }
                 }
 
                 Section("Meals per day") {
@@ -55,6 +72,12 @@ struct PlanEntryView: View {
 
                     Button { showGroceryList = true } label: {
                         Label("View grocery list", systemImage: "cart.fill")
+                    }
+
+                    NavigationLink {
+                        VariantsListView(plan: plan)
+                    } label: {
+                        Label("Edit meal plan variants", systemImage: "square.and.pencil")
                     }
                 }
 
@@ -108,6 +131,19 @@ struct PlanEntryView: View {
             ), displayedComponents: .hourAndMinute)
             .labelsHidden()
         }
+    }
+
+    private var driftWarning: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label("These variants now drift outside ±5% of your new target:",
+                  systemImage: "exclamationmark.triangle.fill")
+                .font(.caption.weight(.semibold)).foregroundStyle(.orange)
+            ForEach(driftingVariants, id: \.name) { drift in
+                Text("\(drift.name): \(Fmt.g(drift.kcal)) kcal (\(Fmt.signed(drift.deltaKcal)))")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 4)
     }
 
     private func macroField(_ label: String, value: Binding<Double>, unit: String) -> some View {

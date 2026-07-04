@@ -59,13 +59,16 @@ public enum VariantFallback {
 
     /// The best alternative to `currentVariantID`, but only if it's a
     /// meaningfully better fridge fit — otherwise nil (don't suggest
-    /// disruptive whole-day swaps for a marginal improvement).
+    /// disruptive whole-day swaps for a marginal improvement). Never suggests
+    /// switching to a retired (inactive) variant.
     public static func suggestAlternative(to currentVariantID: String, among variants: [DayVariant],
                                           fridge: FridgeInventory,
                                           minimumImprovement: Double = 0.15) -> VariantFitScore? {
         let scores = scoreVariants(variants, against: fridge)
         let currentFit = scores.first { $0.variantID == currentVariantID }?.fitFraction ?? 0
-        guard let best = scores.first(where: { $0.variantID != currentVariantID }) else { return nil }
+        let activeIDs = Set(variants.filter(\.isActive).map(\.id))
+        guard let best = scores.first(where: { $0.variantID != currentVariantID && activeIDs.contains($0.variantID) })
+        else { return nil }
         return (best.fitFraction - currentFit) >= minimumImprovement ? best : nil
     }
 }

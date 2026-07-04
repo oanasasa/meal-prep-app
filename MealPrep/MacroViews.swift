@@ -67,3 +67,49 @@ struct DeltaChips: View {
             .foregroundStyle(ok ? Color.green : Color.secondary)
     }
 }
+
+/// Three-tier tolerance colour used by the plan editor's live "day total vs
+/// target" feedback: green within ±5%, orange within ±10%, red beyond.
+enum ToleranceTier {
+    case good, warn, bad
+
+    init(_ delta: MacroDelta, on field: MacroField = .kcal) {
+        let frac = abs(delta.fractional[field])
+        if frac <= 0.05 { self = .good }
+        else if frac <= 0.10 { self = .warn }
+        else { self = .bad }
+    }
+
+    var color: Color {
+        switch self {
+        case .good: return .green
+        case .warn: return .orange
+        case .bad: return .red
+        }
+    }
+}
+
+/// "Day total: 1,940 kcal, +40 vs target" — live feedback while editing a meal
+/// or macro targets, colour-coded by how far the day total has drifted.
+struct DayTotalBanner: View {
+    let label: String
+    let actual: MacroVector
+    let target: MacroVector
+
+    private var delta: MacroDelta { MacroDelta(target: target, actual: actual) }
+    private var tier: ToleranceTier { ToleranceTier(delta) }
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label).font(.caption).foregroundStyle(.secondary)
+                Text("\(Fmt.g(actual.kcal)) kcal").font(.headline).foregroundStyle(tier.color)
+            }
+            Spacer()
+            Text("\(Fmt.signed(delta.absolute.kcal)) vs target")
+                .font(.subheadline.weight(.semibold)).foregroundStyle(tier.color)
+        }
+        .padding()
+        .background(tier.color.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+    }
+}

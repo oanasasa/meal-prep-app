@@ -62,13 +62,29 @@ public struct MealTemplate: Codable, Identifiable, Equatable, Sendable {
     }
 }
 
-/// A full day (4 meals) from the trainer's plan. Variants are day-level units —
+/// A full day (4+ meals) from the trainer's plan. Variants are day-level units —
 /// meals may be reordered/combined WITHIN a variant, but never mixed across
-/// variants (trainer rule 2).
+/// variants (trainer rule 2). Retiring a variant sets `isActive = false` rather
+/// than deleting it, so the rotation stops using it while history (and any
+/// already-cooked record referencing it) stays intact.
 public struct DayVariant: Codable, Identifiable, Equatable, Sendable {
-    public let id: String          // "V1"…"V4"
+    public let id: String          // "V1"…"V4", or a generated id for user-created ones
     public let name: String
     public let meals: [MealTemplate]
+    public let isActive: Bool
+
+    private enum CodingKeys: String, CodingKey { case id, name, meals, isActive }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        meals = try c.decode([MealTemplate].self, forKey: .meals)
+        isActive = try c.decodeIfPresent(Bool.self, forKey: .isActive) ?? true
+    }
+
+    public init(id: String, name: String, meals: [MealTemplate], isActive: Bool = true) {
+        self.id = id; self.name = name; self.meals = meals; self.isActive = isActive
+    }
 }
 
 /// In-memory catalogue + bundled-seed loader for the day-variants.

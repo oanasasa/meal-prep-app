@@ -77,4 +77,22 @@ struct RestockPlannerTests {
         let noSuggestion = VariantFallback.suggestAlternative(to: "V2", among: variants, fridge: fridge)
         #expect(noSuggestion == nil)
     }
+
+    @Test func suggestAlternativeNeverProposesARetiredVariant() throws {
+        let variants = try fullVariantLibrary()
+        // Fridge stocked only for V2 — but V2 is retired.
+        guard let v2 = variants.first(where: { $0.id == "V2" }) else {
+            Issue.record("V2 missing from bundled variants")
+            return
+        }
+        let retired = variants.map { v in
+            v.id == "V2" ? DayVariant(id: v.id, name: v.name, meals: v.meals, isActive: false) : v
+        }
+        let items = Dictionary(grouping: v2.meals.flatMap(\.lines), by: \.ingredientID).map { id, lines in
+            FridgeItem(ingredientID: id, quantityGrams: (lines.map(\.baseRawGrams).max() ?? 0) * 10, addedDate: FridgeExpiry.daysAgo(0))
+        }
+        let fridge = FridgeInventory(items: items)
+        let suggestion = VariantFallback.suggestAlternative(to: "V1", among: retired, fridge: fridge)
+        #expect(suggestion?.variantID != "V2")
+    }
 }

@@ -1,21 +1,24 @@
 import Foundation
 import Observation
+import SwiftData
 import MealPrepCore
 
-/// App-wide, read-only resources loaded once: the ingredient DB, recipe library,
-/// and the engines built on them. The editable state (the trainer plan) lives in
-/// SwiftData; the weekly plan is regenerated from it on demand.
+/// App-wide resources: the ingredient DB, recipe library, variant library, and
+/// the engines built on them. `database` and `variants` start from the bundled
+/// seed but become LIVE once `reload(customIngredients:variantEntities:)` is
+/// called (RootView does this on launch and whenever the underlying SwiftData
+/// rows change) — from then on every derived engine reflects the user's edits.
 @Observable
 final class AppModel {
-    let database: IngredientDatabase
-    let library: RecipeLibrary
-    let variants: VariantLibrary
-    let calculator: PortionCalculator
-    let engine: SubstitutionEngine
-    let generator: WeeklyPlanGenerator
-    let portioner: VariantPortioner
-    let planner: VariantRotationPlanner
-    let cookPlanBuilder: CookPlanBuilder
+    private(set) var database: IngredientDatabase
+    private(set) var library: RecipeLibrary
+    private(set) var variants: VariantLibrary
+    private(set) var calculator: PortionCalculator
+    private(set) var engine: SubstitutionEngine
+    private(set) var generator: WeeklyPlanGenerator
+    private(set) var portioner: VariantPortioner
+    private(set) var planner: VariantRotationPlanner
+    private(set) var cookPlanBuilder: CookPlanBuilder
     let loadError: String?
 
     init() {
@@ -23,33 +26,64 @@ final class AppModel {
             let db = try IngredientDatabase.loadBundled()
             let lib = try RecipeLibrary.loadBundled()
             let vars = try VariantLibrary.loadBundled()
-            let calc = PortionCalculator(database: db)
-            let port = VariantPortioner(calculator: calc)
             self.database = db
             self.library = lib
             self.variants = vars
-            self.calculator = calc
-            self.engine = SubstitutionEngine(database: db)
-            self.generator = WeeklyPlanGenerator(library: lib, calculator: calc)
-            self.portioner = port
-            self.planner = VariantRotationPlanner(library: vars, portioner: port)
-            self.cookPlanBuilder = CookPlanBuilder(database: db, portioner: port)
+            (self.calculator, self.engine, self.generator, self.portioner,
+             self.planner, self.cookPlanBuilder) = Self.buildEngines(database: db, library: lib, variants: vars)
             self.loadError = nil
         } catch {
             let empty = IngredientDatabase(ingredients: [])
-            let calc = PortionCalculator(database: empty)
-            let port = VariantPortioner(calculator: calc)
+            let emptyLib = RecipeLibrary(recipes: [])
+            let emptyVars = VariantLibrary(variants: [])
             self.database = empty
-            self.library = RecipeLibrary(recipes: [])
-            self.variants = VariantLibrary(variants: [])
-            self.calculator = calc
-            self.engine = SubstitutionEngine(database: empty)
-            self.generator = WeeklyPlanGenerator(library: RecipeLibrary(recipes: []), calculator: calc)
-            self.portioner = port
-            self.planner = VariantRotationPlanner(library: VariantLibrary(variants: []), portioner: port)
-            self.cookPlanBuilder = CookPlanBuilder(database: empty, portioner: port)
+            self.library = emptyLib
+            self.variants = emptyVars
+            (self.calculator, self.engine, self.generator, self.portioner,
+             self.planner, self.cookPlanBuilder) = Self.buildEngines(database: empty, library: emptyLib, variants: emptyVars)
             self.loadError = String(describing: error)
         }
+    }
+
+    /// Rebuilds every derived engine straight from SwiftData. Call this after
+    /// ANY edit (meal grams, new ingredient, variant activate/deactivate,
+    /// restore from history…) so the rest of the app immediately reflects it —
+    /// there's no other cache-invalidation path, this is the single source of
+    /// truth refresh. Custom ingredients merge with the bundled catalogue
+    /// (custom IDs never collide with bundled ones — see `IngredientEntity.slug`);
+    /// variants come entirely from SwiftData (seeded once from the bundled
+    /// JSON, then authoritative — see `PlanDataSeeder`).
+    func reload(context: ModelContext) {
+        let customIngredients = (try? context.fetch(FetchDescriptor<IngredientEntity>())) ?? []
+        let variantEntities = (try? context.fetch(FetchDescriptor<VariantEntity>())) ?? []
+        reload(customIngredients: customIngredients, variantEntities: variantEntities)
+    }
+
+    func reload(customIngredients: [IngredientEntity], variantEntities: [VariantEntity]) {
+        let bundledIngredients = (try? IngredientDatabase.loadBundled().all) ?? []
+        let merged = bundledIngredients + customIngredients.map { $0.asIngredient() }
+        let db = IngredientDatabase(ingredients: merged)
+
+        let dayVariants = variantEntities
+            .sorted { $0.sortOrder < $1.sortOrder }
+            .map { $0.asDayVariant() }
+        let vars = VariantLibrary(variants: dayVariants)
+
+        self.database = db
+        self.variants = vars
+        (self.calculator, self.engine, self.generator, self.portioner,
+         self.planner, self.cookPlanBuilder) = Self.buildEngines(database: db, library: library, variants: vars)
+    }
+
+    private static func buildEngines(database: IngredientDatabase, library: RecipeLibrary, variants: VariantLibrary)
+        -> (PortionCalculator, SubstitutionEngine, WeeklyPlanGenerator, VariantPortioner,
+            VariantRotationPlanner, CookPlanBuilder) {
+        let calc = PortionCalculator(database: database)
+        let port = VariantPortioner(calculator: calc)
+        return (calc, SubstitutionEngine(database: database),
+               WeeklyPlanGenerator(library: library, calculator: calc), port,
+               VariantRotationPlanner(library: variants, portioner: port),
+               CookPlanBuilder(database: database, portioner: port))
     }
 
     // MARK: - Variant plan (the trainer's actual "Oana 1900" plan)
