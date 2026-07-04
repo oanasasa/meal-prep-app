@@ -23,23 +23,30 @@ struct RestockView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section("Check off what you found") {
-                    ForEach(items) { item in
-                        Toggle(isOn: bindingFor(item)) {
-                            HStack {
-                                Text(item.name)
-                                Spacer()
-                                Text(item.displayQuantity).foregroundStyle(.secondary)
+            Group {
+                if items.isEmpty {
+                    ContentUnavailableView("Nothing to restock", systemImage: "checkmark.circle",
+                                           description: Text("There's no grocery list to check off right now."))
+                } else {
+                    List {
+                        Section("Check off what you found") {
+                            ForEach(items) { item in
+                                Toggle(isOn: bindingFor(item)) {
+                                    HStack {
+                                        Text(item.name)
+                                        Spacer()
+                                        Text(item.displayQuantity).foregroundStyle(.secondary)
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                if !missingItems.isEmpty {
-                    Section("Affected by what's missing") {
-                        ForEach(missingItems) { item in
-                            missingItemRow(item)
+                        if !missingItems.isEmpty {
+                            Section("Affected by what's missing") {
+                                ForEach(missingItems) { item in
+                                    missingItemRow(item)
+                                }
+                            }
                         }
                     }
                 }

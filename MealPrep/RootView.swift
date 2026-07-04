@@ -2,12 +2,12 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 
-/// Tab shell. Seeds a default trainer plan on first launch, then hands the live
-/// `TrainerPlanEntity` down to the three tabs. Also owns notification setup and
-/// deep-link routing (tapping a cook-session or evening-nudge notification
-/// opens Cook Mode directly; the grocery notification opens the grocery list).
+/// Tab shell. Shows a 3-screen onboarding flow on first launch (no plan yet);
+/// once a `TrainerPlanEntity` exists, hands it down to the four tabs. Also owns
+/// notification setup and deep-link routing (tapping a cook-session or
+/// evening-nudge notification opens Cook Mode directly; the grocery
+/// notification opens the grocery list).
 struct RootView: View {
-    @Environment(\.modelContext) private var context
     @Environment(AppModel.self) private var model
     @Query private var plans: [TrainerPlanEntity]
     @State private var selectedTab = 0
@@ -52,14 +52,8 @@ struct RootView: View {
                     }
                 }
             } else {
-                ProgressView().task { seedIfNeeded() }
+                OnboardingView()
             }
         }
-    }
-
-    private func seedIfNeeded() {
-        guard plans.isEmpty else { return }
-        context.insert(TrainerPlanEntity())
-        try? context.save()
     }
 }

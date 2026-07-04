@@ -17,7 +17,8 @@ struct WeekView: View {
                     cookSessionsSection(week)
                     ForEach(week.days) { day in daySection(day) }
                 } else {
-                    Text("Couldn't build this week's plan.").foregroundStyle(.secondary)
+                    ContentUnavailableView("Couldn't build this week", systemImage: "calendar.badge.exclamationmark",
+                                           description: Text("Check your macro plan in the Plan tab."))
                 }
             }
             .navigationTitle("This Week")

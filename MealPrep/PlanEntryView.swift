@@ -118,6 +118,7 @@ struct PlanEntryView: View {
                 .multilineTextAlignment(.trailing)
                 .keyboardType(.decimalPad)
                 .frame(maxWidth: 90)
+                .minimumScaleFactor(0.5)
             Text(unit).foregroundStyle(.secondary)
         }
     }

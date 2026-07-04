@@ -27,6 +27,7 @@ meal-prep-app/
 │   ├── InventoryView.swift      #   fridge/pantry: add, decrement, expiry badges
 │   ├── RestockView.swift        #   grocery checklist → fridge merge + substitution trigger
 │   ├── FridgeItemEntity.swift   #   SwiftData: one row per ingredient in stock
+│   ├── OnboardingView.swift     #   first-run: macros → schedule → done (3 screens)
 │   └── Assets.xcassets
 └── MealPrepCore/                # pure Swift package: all the tested logic
     ├── Package.swift
@@ -151,6 +152,20 @@ simmering pot all run unattended at once). See
     and an evening "have you cooked yet?" nudge that gets locally cancelled the
     moment you mark a session cooked. All times except which weekday each
     fires on are adjustable in **Plan ▸ Notification times**.
+- **Phase 5: done.** Polish:
+  - **Onboarding** (`OnboardingView`) — exactly 3 screens (macros → schedule →
+    done) on first launch, pre-filled with sensible defaults so a tired user
+    can just tap through; every field stays editable later in Plan. Replaces
+    the old silent auto-seeded default plan.
+  - **Empty states** — every screen that can legitimately have nothing to show
+    (grocery list, restock, cook mode, week, home) now uses a friendly
+    `ContentUnavailableView` instead of a bare fallback string.
+  - **Dynamic Type** — `MacroSummary`/`DeltaChips` switched from a fixed
+    4-across `HStack` to an adaptive grid that reflows to fewer columns at
+    accessibility text sizes instead of clipping; numeric entry fields got
+    `.minimumScaleFactor` as a safety net.
+  - **Dark mode** — verified live (Home, a substitution sheet); works
+    automatically since every view already used semantic system colors.
 - **94 passing tests** across all phases' core logic.
 
 ### Known caveats / deliberate scope calls

@@ -10,12 +10,18 @@ enum Fmt {
 }
 
 /// The four macros as coloured pills. Reused on the home cards and results.
+/// Uses an adaptive grid rather than a fixed HStack so it reflows to 2 columns
+/// at larger accessibility text sizes instead of clipping or overflowing.
 struct MacroSummary: View {
     let macros: MacroVector
     var compact = false
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var minPillWidth: CGFloat { typeSize.isAccessibilitySize ? 140 : 60 }
+    private var gap: CGFloat { compact ? 6 : 10 }
 
     var body: some View {
-        HStack(spacing: compact ? 6 : 10) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: minPillWidth), spacing: gap)], spacing: gap) {
             pill("\(Fmt.g(macros.kcal))", "kcal", .orange)
             pill("\(Fmt.g(macros.protein))g", "protein", .pink)
             pill("\(Fmt.g(macros.carbs))g", "carbs", .blue)
@@ -35,12 +41,16 @@ struct MacroSummary: View {
 }
 
 /// Signed delta chips, e.g. "−12 kcal  +2 g P". Green when within tolerance.
+/// Same adaptive-grid reflow as `MacroSummary`, for the same reason.
 struct DeltaChips: View {
     let delta: MacroVector
     let ok: Bool
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var minChipWidth: CGFloat { typeSize.isAccessibilitySize ? 120 : 70 }
 
     var body: some View {
-        HStack(spacing: 6) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: minChipWidth), spacing: 6)], spacing: 6) {
             chip("\(Fmt.signed(delta.kcal)) kcal")
             chip("\(Fmt.signed(delta.protein)) P")
             chip("\(Fmt.signed(delta.carbs)) C")

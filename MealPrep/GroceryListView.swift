@@ -1,10 +1,10 @@
 import SwiftUI
 import MealPrepCore
 
-/// Read-only preview of everything the week needs, grouped by store section.
-/// This is a lightweight stand-in for the full Phase-3 grocery flow — it does
-/// NOT subtract what's already in the fridge, and there's no restock checklist
-/// yet. It exists so the "Grocery list ready" notification has somewhere to go.
+/// Read-only preview of everything the week needs, grouped by store section —
+/// this pre-shop list doesn't subtract fridge stock (only the post-shop
+/// Restock flow is fridge-aware). It's also where the "Grocery list ready"
+/// notification opens.
 struct GroceryListView: View {
     let plan: TrainerPlanEntity
     @Environment(AppModel.self) private var model
@@ -17,21 +17,28 @@ struct GroceryListView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(sections, id: \.self) { section in
-                    Section(section.rawValue.capitalized) {
-                        ForEach(items.filter { $0.section == section }) { item in
-                            HStack {
-                                Text(item.name)
-                                Spacer()
-                                Text(item.displayQuantity).foregroundStyle(.secondary).monospacedDigit()
+            Group {
+                if items.isEmpty {
+                    ContentUnavailableView("Nothing needed yet", systemImage: "cart",
+                                           description: Text("Your grocery list builds from this week's plan."))
+                } else {
+                    List {
+                        ForEach(sections, id: \.self) { section in
+                            Section(section.rawValue.capitalized) {
+                                ForEach(items.filter { $0.section == section }) { item in
+                                    HStack {
+                                        Text(item.name)
+                                        Spacer()
+                                        Text(item.displayQuantity).foregroundStyle(.secondary).monospacedDigit()
+                                    }
+                                }
                             }
                         }
+                        Section {
+                            Text("This is everything the week needs — it doesn't yet subtract what's in your fridge.")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
                     }
-                }
-                Section {
-                    Text("This is everything the week needs — it doesn't yet subtract what's in your fridge.")
-                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Grocery List (\(items.count))")

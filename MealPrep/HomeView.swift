@@ -32,9 +32,14 @@ struct HomeView: View {
                 VStack(spacing: 16) {
                     if let err = model.loadError { errorCard(err) }
                     if let week = model.variantWeek(for: plan) { cookCountdownCard(week) }
-                    dayTotalCard
-                    ForEach(today?.meals ?? []) { meal in mealCard(meal) }
-                    substituteButton
+                    if today != nil {
+                        dayTotalCard
+                        ForEach(today?.meals ?? []) { meal in mealCard(meal) }
+                        substituteButton
+                    } else if model.loadError == nil {
+                        ContentUnavailableView("No meals today", systemImage: "fork.knife",
+                                               description: Text("Check your macro plan in the Plan tab."))
+                    }
                     supplementsCard
                     waterCard
                     Text("All grams are raw weights.")

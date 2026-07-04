@@ -37,8 +37,9 @@ struct CookModeView: View {
                         portionsCard(cookPlan)
                         markCookedButton
                     } else {
-                        Text("Couldn't build this session's cook plan.")
-                            .foregroundStyle(.secondary)
+                        ContentUnavailableView("Couldn't build this session", systemImage: "exclamationmark.triangle",
+                                               description: Text("Try reopening from the Week tab."))
+                            .frame(maxWidth: .infinity)
                     }
                 }
                 .padding()
