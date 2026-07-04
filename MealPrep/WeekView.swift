@@ -6,6 +6,7 @@ import MealPrepCore
 struct WeekView: View {
     let plan: TrainerPlanEntity
     @Environment(AppModel.self) private var model
+    @State private var cookModeContext: CookModeContext?
 
     private var week: VariantWeek? { model.variantWeek(for: plan) }
 
@@ -20,22 +21,32 @@ struct WeekView: View {
                 }
             }
             .navigationTitle("This Week")
+            .sheet(item: $cookModeContext) { ctx in
+                CookModeView(sessionID: ctx.id, plan: plan)
+            }
         }
     }
 
     private func cookSessionsSection(_ week: VariantWeek) -> some View {
-        Section("Cook sessions (rolling 2-day)") {
+        Section("Cook sessions (rolling 2-day) — tap to open Cook Mode") {
             ForEach(week.cookSessions) { session in
-                HStack(spacing: 12) {
-                    Image(systemName: "flame.fill").foregroundStyle(.orange).frame(width: 26)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(session.title) · \(CookScheduler.weekdayName(forOffset: session.cookDayOffset))")
-                            .font(.subheadline.weight(.semibold))
-                        Text("cooks batch meals for " + session.coversDayOffsets
-                            .map { CookScheduler.weekdayName(forOffset: $0) }.joined(separator: " + "))
-                            .font(.caption).foregroundStyle(.secondary)
+                Button {
+                    cookModeContext = CookModeContext(id: session.id)
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "flame.fill").foregroundStyle(.orange).frame(width: 26)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("\(session.title) · \(CookScheduler.weekdayName(forOffset: session.cookDayOffset))")
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(.primary)
+                            Text("cooks batch meals for " + session.coversDayOffsets
+                                .map { CookScheduler.weekdayName(forOffset: $0) }.joined(separator: " + "))
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                     }
                 }
+                .buttonStyle(.plain)
             }
             if plan.gymThursday {
                 Label("Thursday gym on — 3rd session moved to Friday",

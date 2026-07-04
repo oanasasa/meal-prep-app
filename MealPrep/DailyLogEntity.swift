@@ -6,8 +6,8 @@ import SwiftData
 @Model
 final class DailyLogEntity {
     @Attribute(.unique) var dayKey: String
-    var takenSupplementIDs: [String]
-    var waterMilliliters: Int
+    var takenSupplementIDs: [String] = []
+    var waterMilliliters: Int = 0
 
     init(dayKey: String, takenSupplementIDs: [String] = [], waterMilliliters: Int = 0) {
         self.dayKey = dayKey

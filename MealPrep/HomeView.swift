@@ -10,12 +10,18 @@ struct SubstituteContext: Identifiable {
     let target: MacroVector
 }
 
+/// Wraps a cook session id so it can drive a `.sheet(item:)`.
+struct CookModeContext: Identifiable {
+    let id: String
+}
+
 struct HomeView: View {
     let plan: TrainerPlanEntity
     @Environment(AppModel.self) private var model
     @Environment(\.modelContext) private var context
     @Query private var logs: [DailyLogEntity]
     @State private var substitute: SubstituteContext?
+    @State private var cookModeContext: CookModeContext?
 
     private var today: VariantDay? { model.todaysVariantDay(for: plan) }
     private var todayOffset: Int { AppModel.todayOffset() }
@@ -40,6 +46,9 @@ struct HomeView: View {
             .navigationTitle(dayTitle)
             .sheet(item: $substitute) { ctx in
                 SubstituteView(title: ctx.title, lines: ctx.lines, target: ctx.target)
+            }
+            .sheet(item: $cookModeContext) { ctx in
+                CookModeView(sessionID: ctx.id, plan: plan)
             }
         }
     }
@@ -112,27 +121,36 @@ struct HomeView: View {
 
     private func cookCountdownCard(_ week: VariantWeek) -> some View {
         let next = week.cookSessions.first { $0.cookDayOffset >= todayOffset }
-        return HStack(spacing: 14) {
-            Image(systemName: next == nil ? "checkmark.circle.fill" : "timer")
-                .font(.title2).foregroundStyle(.white)
-                .frame(width: 44, height: 44)
-                .background(.green, in: RoundedRectangle(cornerRadius: 12))
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Next cook session").font(.subheadline).foregroundStyle(.secondary)
-                if let next {
-                    Text("\(next.title) · \(CookScheduler.weekdayName(forOffset: next.cookDayOffset))")
-                        .font(.headline)
-                    Text("Cooks for " + next.coversDayOffsets
-                        .map { CookScheduler.weekdayName(forOffset: $0) }.joined(separator: " + "))
-                        .font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Text("All cooked — nothing to prep today").font(.headline)
+        return Button {
+            if let next { cookModeContext = CookModeContext(id: next.id) }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: next == nil ? "checkmark.circle.fill" : "timer")
+                    .font(.title2).foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(.green, in: RoundedRectangle(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Next cook session").font(.subheadline).foregroundStyle(.secondary)
+                    if let next {
+                        Text("\(next.title) · \(CookScheduler.weekdayName(forOffset: next.cookDayOffset))")
+                            .font(.headline)
+                        Text("Cooks for " + next.coversDayOffsets
+                            .map { CookScheduler.weekdayName(forOffset: $0) }.joined(separator: " + "))
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Text("All cooked — nothing to prep today").font(.headline)
+                    }
+                }
+                Spacer()
+                if next != nil {
+                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                 }
             }
-            Spacer()
+            .padding()
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
         }
-        .padding()
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        .buttonStyle(.plain)
+        .disabled(next == nil)
     }
 
     // MARK: - Supplements

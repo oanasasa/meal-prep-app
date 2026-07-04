@@ -1,8 +1,10 @@
 import SwiftUI
+import SwiftData
 import MealPrepCore
 
 /// The core feature made tappable: pick the ingredient the store didn't have,
-/// see whole-food substitutes re-gram'd to keep the meal within ±5%.
+/// see whole-food substitutes re-gram'd to keep the meal within ±5%. Can also
+/// search fresh fridge stock instead of the default same-food-group pool.
 struct SubstituteView: View {
     let title: String
     let lines: [RecipeLine]      // Her scaled grams for this meal
@@ -10,7 +12,9 @@ struct SubstituteView: View {
 
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
+    @Query private var fridgeEntities: [FridgeItemEntity]
     @State private var missingID: String?
+    @State private var useFridge = false
 
     var body: some View {
         NavigationStack {
@@ -36,11 +40,19 @@ struct SubstituteView: View {
                     }
                 }
 
+                if missingID != nil {
+                    Section {
+                        Toggle("Replace with something I have", isOn: $useFridge)
+                    }
+                }
+
                 if let missingID {
-                    let suggestions = model.suggestions(forMissing: missingID, lines: lines, target: target)
-                    Section("Swap in (ranked, keeps meal within ±5%)") {
+                    let fridge = useFridge ? model.fridgeInventory(from: fridgeEntities) : nil
+                    let suggestions = model.suggestions(forMissing: missingID, lines: lines, target: target, fridge: fridge)
+                    Section(useFridge ? "From your fridge (fresh only)" : "Swap in (ranked, keeps meal within ±5%)") {
                         if suggestions.isEmpty {
-                            Text("No whole-food match in this group yet.")
+                            Text(useFridge ? "Nothing fresh in your fridge fits here yet."
+                                           : "No whole-food match in this group yet.")
                                 .foregroundStyle(.secondary)
                         }
                         ForEach(suggestions, id: \.substitute.id) { s in

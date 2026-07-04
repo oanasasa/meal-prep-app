@@ -11,6 +11,7 @@ struct MealPrepApp: App {
                 .environment(model)
         }
         // Local-first persistence: the trainer plan + per-day tracking.
-        .modelContainer(for: [TrainerPlanEntity.self, DailyLogEntity.self])
+        .modelContainer(for: [TrainerPlanEntity.self, DailyLogEntity.self, CookSessionLogEntity.self,
+                             FridgeItemEntity.self])
     }
 }

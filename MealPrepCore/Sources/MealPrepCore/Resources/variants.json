@@ -17,6 +17,12 @@
           { "ingredientID": "tomato-sauce", "baseRawGrams": 100 },
           { "ingredientID": "parmesan", "baseRawGrams": 10 },
           { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+        ],
+        "cookSteps": [
+          { "text": "Season chicken breasts, bake at 200°C", "minutes": 22, "method": "oven", "isPassive": true },
+          { "text": "Boil pasta until al dente", "minutes": 10, "method": "stovetop", "isPassive": true },
+          { "text": "Warm tomato sauce on low heat", "minutes": 5, "method": "stovetop", "isPassive": true },
+          { "text": "Slice baked chicken, toss everything with parmesan", "minutes": 3, "method": "stovetop" }
         ] },
       { "id": "v1-m3", "name": "Greek yogurt bowl", "mealType": "snack", "freshOnly": true,
         "lines": [
@@ -32,6 +38,11 @@
           { "ingredientID": "tortilla-wholewheat", "baseRawGrams": 50 },
           { "ingredientID": "salsa", "baseRawGrams": 25 },
           { "ingredientID": "avocado", "baseRawGrams": 30 }
+        ],
+        "cookSteps": [
+          { "text": "Cube potatoes, roast at 200°C", "minutes": 30, "method": "oven", "isPassive": true },
+          { "text": "Brown beef mince with taco seasoning", "minutes": 10, "method": "stovetop" },
+          { "text": "Warm tortillas, slice avocado, plate with salsa", "minutes": 3, "method": "noCook" }
         ] }
     ]
   },
@@ -65,6 +76,12 @@
           { "ingredientID": "white-rice-dry", "baseRawGrams": 75 },
           { "ingredientID": "mixed-vegetables", "baseRawGrams": 150 },
           { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+        ],
+        "cookSteps": [
+          { "text": "Season turkey breast, bake at 190°C", "minutes": 25, "method": "oven", "isPassive": true },
+          { "text": "Rinse rice, start rice cooker", "minutes": 20, "method": "riceCooker", "isPassive": true },
+          { "text": "Steam mixed vegetables", "minutes": 8, "method": "stovetop", "isPassive": true },
+          { "text": "Slice turkey, drizzle with olive oil, plate", "minutes": 3, "method": "noCook" }
         ] }
     ]
   },
@@ -87,6 +104,11 @@
           { "ingredientID": "light-cream-cheese", "baseRawGrams": 50 },
           { "ingredientID": "mushrooms", "baseRawGrams": 100 },
           { "ingredientID": "parmesan", "baseRawGrams": 10 }
+        ],
+        "cookSteps": [
+          { "text": "Boil pasta until al dente", "minutes": 10, "method": "stovetop", "isPassive": true },
+          { "text": "Brown ground turkey with mushrooms", "minutes": 12, "method": "stovetop" },
+          { "text": "Stir in cream cheese and parmesan, combine with pasta", "minutes": 4, "method": "stovetop" }
         ] },
       { "id": "v3-m3", "name": "Yogurt & granola snack", "mealType": "snack", "freshOnly": true,
         "lines": [
@@ -100,6 +122,11 @@
           { "ingredientID": "potato", "baseRawGrams": 250 },
           { "ingredientID": "mixed-vegetables", "baseRawGrams": 200 },
           { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+        ],
+        "cookSteps": [
+          { "text": "Cube potatoes, roast at 200°C", "minutes": 30, "method": "oven", "isPassive": true },
+          { "text": "Steam mixed vegetables", "minutes": 8, "method": "stovetop", "isPassive": true },
+          { "text": "Pan-sear steak to preference, rest, slice", "minutes": 10, "method": "stovetop" }
         ] }
     ]
   },
@@ -119,6 +146,11 @@
           { "ingredientID": "beef-mince-10", "baseRawGrams": 170 },
           { "ingredientID": "tomato-sauce", "baseRawGrams": 150 },
           { "ingredientID": "parmesan", "baseRawGrams": 10 }
+        ],
+        "cookSteps": [
+          { "text": "Boil pasta until al dente", "minutes": 10, "method": "stovetop", "isPassive": true },
+          { "text": "Brown beef mince, add tomato sauce, simmer", "minutes": 15, "method": "stovetop" },
+          { "text": "Combine with pasta, top with parmesan", "minutes": 3, "method": "stovetop" }
         ] },
       { "id": "v4-m3", "name": "Protein yogurt snack", "mealType": "snack", "freshOnly": true,
         "lines": [
@@ -132,6 +164,12 @@
           { "ingredientID": "sweet-potato", "baseRawGrams": 150 },
           { "ingredientID": "avocado", "baseRawGrams": 30 },
           { "ingredientID": "mixed-vegetables", "baseRawGrams": 200 }
+        ],
+        "cookSteps": [
+          { "text": "Cube sweet potato, roast at 200°C", "minutes": 25, "method": "oven", "isPassive": true },
+          { "text": "Season chicken, bake alongside on a second tray", "minutes": 22, "method": "oven", "isPassive": true },
+          { "text": "Steam mixed vegetables", "minutes": 8, "method": "stovetop", "isPassive": true },
+          { "text": "Slice avocado, plate everything", "minutes": 3, "method": "noCook" }
         ] }
     ]
   }
