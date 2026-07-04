@@ -1,0 +1,13 @@
+# Xcode / SwiftPM build output
+.build/
+.build-xcode/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+
+# macOS
+.DS_Store
+
+# Claude Code local tooling config
+.claude/

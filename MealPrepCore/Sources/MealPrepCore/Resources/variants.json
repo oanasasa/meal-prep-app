@@ -1,0 +1,138 @@
+[
+  {
+    "id": "V1", "name": "Variant 1",
+    "meals": [
+      { "id": "v1-m1", "name": "Eggs & toast breakfast", "mealType": "breakfast", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "egg-whole", "baseRawGrams": 165 },
+          { "ingredientID": "egg-white", "baseRawGrams": 200 },
+          { "ingredientID": "bread-wholemeal", "baseRawGrams": 80 },
+          { "ingredientID": "butter", "baseRawGrams": 15 },
+          { "ingredientID": "mixed-vegetables", "baseRawGrams": 100 }
+        ] },
+      { "id": "v1-m2", "name": "Chicken pasta", "mealType": "lunch", "batchSafe": true,
+        "lines": [
+          { "ingredientID": "pasta-dry", "baseRawGrams": 90 },
+          { "ingredientID": "chicken-breast", "baseRawGrams": 170 },
+          { "ingredientID": "tomato-sauce", "baseRawGrams": 100 },
+          { "ingredientID": "parmesan", "baseRawGrams": 10 },
+          { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+        ] },
+      { "id": "v1-m3", "name": "Greek yogurt bowl", "mealType": "snack", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "greek-yogurt-2", "baseRawGrams": 200 },
+          { "ingredientID": "banana", "baseRawGrams": 120 },
+          { "ingredientID": "honey", "baseRawGrams": 15 },
+          { "ingredientID": "dark-chocolate", "baseRawGrams": 10 }
+        ] },
+      { "id": "v1-m4", "name": "Beef tacos & potatoes", "mealType": "dinner", "batchSafe": true,
+        "lines": [
+          { "ingredientID": "beef-mince-10", "baseRawGrams": 150 },
+          { "ingredientID": "potato", "baseRawGrams": 150 },
+          { "ingredientID": "tortilla-wholewheat", "baseRawGrams": 50 },
+          { "ingredientID": "salsa", "baseRawGrams": 25 },
+          { "ingredientID": "avocado", "baseRawGrams": 30 }
+        ] }
+    ]
+  },
+  {
+    "id": "V2", "name": "Variant 2",
+    "meals": [
+      { "id": "v2-m1", "name": "Protein oats bowl", "mealType": "breakfast", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "oats", "baseRawGrams": 70 },
+          { "ingredientID": "greek-yogurt-2", "baseRawGrams": 250 },
+          { "ingredientID": "whey-protein", "baseRawGrams": 30 },
+          { "ingredientID": "mixed-berries", "baseRawGrams": 100 },
+          { "ingredientID": "peanut-butter", "baseRawGrams": 15 }
+        ] },
+      { "id": "v2-m2", "name": "Chicken wraps", "mealType": "lunch", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "chicken-breast", "baseRawGrams": 180 },
+          { "ingredientID": "tortilla-wholewheat", "baseRawGrams": 75 },
+          { "ingredientID": "mixed-vegetables", "baseRawGrams": 150 },
+          { "ingredientID": "guacamole", "baseRawGrams": 30 },
+          { "ingredientID": "greek-yogurt-sauce", "baseRawGrams": 30 }
+        ] },
+      { "id": "v2-m3", "name": "Protein pudding & apple", "mealType": "snack", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "protein-pudding-milbona", "baseRawGrams": 200 },
+          { "ingredientID": "apple", "baseRawGrams": 180 }
+        ] },
+      { "id": "v2-m4", "name": "Turkey & rice", "mealType": "dinner", "batchSafe": true,
+        "lines": [
+          { "ingredientID": "turkey-breast", "baseRawGrams": 160 },
+          { "ingredientID": "white-rice-dry", "baseRawGrams": 75 },
+          { "ingredientID": "mixed-vegetables", "baseRawGrams": 150 },
+          { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+        ] }
+    ]
+  },
+  {
+    "id": "V3", "name": "Variant 3",
+    "meals": [
+      { "id": "v3-m1", "name": "Protein French toast", "mealType": "breakfast", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "toast-bread-wholewheat", "baseRawGrams": 100 },
+          { "ingredientID": "egg-whole", "baseRawGrams": 110 },
+          { "ingredientID": "egg-white", "baseRawGrams": 150 },
+          { "ingredientID": "cinnamon", "baseRawGrams": 5 },
+          { "ingredientID": "strawberries", "baseRawGrams": 100 },
+          { "ingredientID": "sugar-free-syrup", "baseRawGrams": 10 }
+        ] },
+      { "id": "v3-m2", "name": "Creamy turkey pasta", "mealType": "lunch", "batchSafe": true,
+        "lines": [
+          { "ingredientID": "pasta-dry", "baseRawGrams": 90 },
+          { "ingredientID": "ground-turkey", "baseRawGrams": 180 },
+          { "ingredientID": "light-cream-cheese", "baseRawGrams": 50 },
+          { "ingredientID": "mushrooms", "baseRawGrams": 100 },
+          { "ingredientID": "parmesan", "baseRawGrams": 10 }
+        ] },
+      { "id": "v3-m3", "name": "Yogurt & granola snack", "mealType": "snack", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "greek-yogurt-2", "baseRawGrams": 200 },
+          { "ingredientID": "kiwi", "baseRawGrams": 75 },
+          { "ingredientID": "sugar-free-granola", "baseRawGrams": 25 }
+        ] },
+      { "id": "v3-m4", "name": "Steak & potatoes", "mealType": "dinner", "batchSafe": true,
+        "lines": [
+          { "ingredientID": "lean-beef-steak", "baseRawGrams": 180 },
+          { "ingredientID": "potato", "baseRawGrams": 250 },
+          { "ingredientID": "mixed-vegetables", "baseRawGrams": 200 },
+          { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+        ] }
+    ]
+  },
+  {
+    "id": "V4", "name": "Variant 4",
+    "meals": [
+      { "id": "v4-m1", "name": "Yogurt granola bowl", "mealType": "breakfast", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "greek-yogurt-2", "baseRawGrams": 250 },
+          { "ingredientID": "sugar-free-granola", "baseRawGrams": 80 },
+          { "ingredientID": "banana", "baseRawGrams": 120 },
+          { "ingredientID": "peanut-butter", "baseRawGrams": 15 }
+        ] },
+      { "id": "v4-m2", "name": "Beef bolognese pasta", "mealType": "lunch", "batchSafe": true,
+        "lines": [
+          { "ingredientID": "pasta-dry", "baseRawGrams": 90 },
+          { "ingredientID": "beef-mince-10", "baseRawGrams": 170 },
+          { "ingredientID": "tomato-sauce", "baseRawGrams": 150 },
+          { "ingredientID": "parmesan", "baseRawGrams": 10 }
+        ] },
+      { "id": "v4-m3", "name": "Protein yogurt snack", "mealType": "snack", "freshOnly": true,
+        "lines": [
+          { "ingredientID": "greek-yogurt-2", "baseRawGrams": 200 },
+          { "ingredientID": "whey-protein", "baseRawGrams": 30 },
+          { "ingredientID": "mixed-berries", "baseRawGrams": 100 }
+        ] },
+      { "id": "v4-m4", "name": "Chicken & sweet potato", "mealType": "dinner", "batchSafe": true,
+        "lines": [
+          { "ingredientID": "chicken-breast", "baseRawGrams": 170 },
+          { "ingredientID": "sweet-potato", "baseRawGrams": 150 },
+          { "ingredientID": "avocado", "baseRawGrams": 30 },
+          { "ingredientID": "mixed-vegetables", "baseRawGrams": 200 }
+        ] }
+    ]
+  }
+]

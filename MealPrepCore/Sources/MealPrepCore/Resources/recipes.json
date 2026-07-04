@@ -1,0 +1,248 @@
+[
+  {
+    "id": "protein-oats", "name": "Protein overnight oats",
+    "suitableMealTypes": ["breakfast"], "prepMinutes": 8, "methods": ["noCook"],
+    "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "oats", "baseRawGrams": 60 },
+      { "ingredientID": "milk-semi", "baseRawGrams": 200 },
+      { "ingredientID": "greek-yogurt-0", "baseRawGrams": 100 },
+      { "ingredientID": "banana", "baseRawGrams": 60 },
+      { "ingredientID": "peanut-butter", "baseRawGrams": 12 }
+    ],
+    "steps": ["Stir oats, milk and yogurt in a jar.", "Top with sliced banana and peanut butter.", "Chill overnight."]
+  },
+  {
+    "id": "veggie-omelette", "name": "Veggie omelette",
+    "suitableMealTypes": ["breakfast"], "prepMinutes": 12, "methods": ["stovetop"],
+    "lines": [
+      { "ingredientID": "egg-whole", "baseRawGrams": 150 },
+      { "ingredientID": "spinach", "baseRawGrams": 40 },
+      { "ingredientID": "bell-pepper", "baseRawGrams": 50 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 5 }
+    ],
+    "steps": ["Whisk eggs.", "Soften pepper and spinach in oil.", "Add eggs, fold, serve."]
+  },
+  {
+    "id": "yogurt-berry-bowl", "name": "Greek yogurt & berry bowl",
+    "suitableMealTypes": ["breakfast", "snack"], "prepMinutes": 4, "methods": ["noCook"],
+    "batchSafe2Days": true, "tiredDay": true,
+    "lines": [
+      { "ingredientID": "greek-yogurt-0", "baseRawGrams": 200 },
+      { "ingredientID": "blueberries", "baseRawGrams": 80 },
+      { "ingredientID": "oats", "baseRawGrams": 30 },
+      { "ingredientID": "almonds", "baseRawGrams": 15 },
+      { "ingredientID": "honey", "baseRawGrams": 10 }
+    ],
+    "steps": ["Spoon yogurt into a bowl.", "Top with berries, oats, almonds and honey."]
+  },
+  {
+    "id": "yogurt-almonds", "name": "Yogurt & almonds",
+    "suitableMealTypes": ["snack"], "prepMinutes": 2, "methods": ["noCook"],
+    "batchSafe2Days": true, "tiredDay": true,
+    "lines": [
+      { "ingredientID": "greek-yogurt-0", "baseRawGrams": 150 },
+      { "ingredientID": "almonds", "baseRawGrams": 20 }
+    ]
+  },
+  {
+    "id": "apple-peanutbutter", "name": "Apple & peanut butter",
+    "suitableMealTypes": ["snack"], "prepMinutes": 2, "methods": ["noCook"],
+    "batchSafe2Days": true, "tiredDay": true,
+    "lines": [
+      { "ingredientID": "apple", "baseRawGrams": 180 },
+      { "ingredientID": "peanut-butter", "baseRawGrams": 20 }
+    ]
+  },
+  {
+    "id": "chicken-rice-bowl", "name": "Chicken & rice bowl",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 35,
+    "methods": ["oven", "riceCooker"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "chicken-breast", "baseRawGrams": 150 },
+      { "ingredientID": "white-rice-dry", "baseRawGrams": 75 },
+      { "ingredientID": "broccoli", "baseRawGrams": 120 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 8 }
+    ],
+    "steps": ["Bake seasoned chicken 25 min at 200°C.", "Cook rice in the rice cooker.", "Steam broccoli.", "Portion and dress with oil."]
+  },
+  {
+    "id": "turkey-quinoa-bowl", "name": "Turkey & quinoa bowl",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 30,
+    "methods": ["stovetop"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "turkey-breast", "baseRawGrams": 150 },
+      { "ingredientID": "quinoa-dry", "baseRawGrams": 70 },
+      { "ingredientID": "spinach", "baseRawGrams": 60 },
+      { "ingredientID": "cherry-tomatoes", "baseRawGrams": 100 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 8 }
+    ],
+    "steps": ["Simmer quinoa 15 min.", "Sear turkey.", "Wilt spinach, halve tomatoes, combine."]
+  },
+  {
+    "id": "salmon-potato-greens", "name": "Baked salmon, potato & greens",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 35,
+    "methods": ["oven"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "salmon", "baseRawGrams": 140 },
+      { "ingredientID": "potato", "baseRawGrams": 250 },
+      { "ingredientID": "green-beans", "baseRawGrams": 120 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 8 }
+    ],
+    "steps": ["Roast potato wedges 25 min.", "Add salmon for the last 12 min.", "Steam green beans."]
+  },
+  {
+    "id": "lentil-stew", "name": "Hearty lentil stew",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 40,
+    "methods": ["stovetop"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "lentils-dry", "baseRawGrams": 80 },
+      { "ingredientID": "carrot", "baseRawGrams": 100 },
+      { "ingredientID": "onion", "baseRawGrams": 80 },
+      { "ingredientID": "passata", "baseRawGrams": 150 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+    ],
+    "steps": ["Soften onion and carrot.", "Add lentils and passata.", "Simmer 30 min until tender."]
+  },
+  {
+    "id": "beef-sweetpotato-bowl", "name": "Lean beef & sweet potato bowl",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 35,
+    "methods": ["oven", "stovetop"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "beef-mince-5", "baseRawGrams": 140 },
+      { "ingredientID": "sweet-potato", "baseRawGrams": 220 },
+      { "ingredientID": "green-beans", "baseRawGrams": 100 },
+      { "ingredientID": "onion", "baseRawGrams": 60 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 8 }
+    ],
+    "steps": ["Roast sweet potato cubes.", "Brown beef with onion.", "Steam beans, combine."]
+  },
+  {
+    "id": "baked-cod-quinoa", "name": "Baked cod & quinoa",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 30,
+    "methods": ["oven", "stovetop"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "cod", "baseRawGrams": 170 },
+      { "ingredientID": "quinoa-dry", "baseRawGrams": 70 },
+      { "ingredientID": "asparagus", "baseRawGrams": 120 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 8 }
+    ],
+    "steps": ["Simmer quinoa.", "Bake cod 15 min.", "Roast asparagus alongside."]
+  },
+  {
+    "id": "chicken-thigh-rice", "name": "Chicken thigh & brown rice",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 40,
+    "methods": ["oven", "riceCooker"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "chicken-thigh", "baseRawGrams": 150 },
+      { "ingredientID": "brown-rice-dry", "baseRawGrams": 75 },
+      { "ingredientID": "broccoli", "baseRawGrams": 120 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 6 }
+    ],
+    "steps": ["Roast thighs 30 min.", "Cook brown rice.", "Steam broccoli."]
+  },
+  {
+    "id": "shrimp-pasta", "name": "Garlic shrimp wholewheat pasta",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 25,
+    "methods": ["stovetop"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "shrimp", "baseRawGrams": 150 },
+      { "ingredientID": "wholewheat-pasta-dry", "baseRawGrams": 80 },
+      { "ingredientID": "cherry-tomatoes", "baseRawGrams": 120 },
+      { "ingredientID": "garlic", "baseRawGrams": 8 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 10 }
+    ],
+    "steps": ["Boil pasta.", "Sauté garlic and tomatoes.", "Add shrimp 3 min, toss with pasta."]
+  },
+  {
+    "id": "turkey-chili", "name": "Turkey & bean chili",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 40,
+    "methods": ["stovetop"], "batchSafe2Days": true,
+    "lines": [
+      { "ingredientID": "turkey-mince-lean", "baseRawGrams": 140 },
+      { "ingredientID": "kidney-beans-canned", "baseRawGrams": 120 },
+      { "ingredientID": "chopped-tomatoes-canned", "baseRawGrams": 150 },
+      { "ingredientID": "bell-pepper", "baseRawGrams": 80 },
+      { "ingredientID": "onion", "baseRawGrams": 60 }
+    ],
+    "steps": ["Brown turkey with onion and pepper.", "Add beans and tomatoes.", "Simmer 25 min."]
+  },
+  {
+    "id": "lean-beef-burgers", "name": "Lean beef burgers & oven fries",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 40,
+    "methods": ["oven", "stovetop"], "batchSafe2Days": true, "husbandCompromise": true,
+    "lines": [
+      { "ingredientID": "beef-mince-5", "baseRawGrams": 150 },
+      { "ingredientID": "bread-wholemeal", "baseRawGrams": 70 },
+      { "ingredientID": "cheddar", "baseRawGrams": 20 },
+      { "ingredientID": "potato", "baseRawGrams": 200 },
+      { "ingredientID": "lettuce", "baseRawGrams": 30 },
+      { "ingredientID": "tomato", "baseRawGrams": 40 }
+    ],
+    "steps": ["Cut potato into fries and roast 30 min.", "Form and griddle patties.", "Build burgers with cheese and salad."]
+  },
+  {
+    "id": "chicken-fajita-wrap", "name": "Chicken fajita wraps",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 25,
+    "methods": ["stovetop"], "batchSafe2Days": true, "husbandCompromise": true,
+    "lines": [
+      { "ingredientID": "chicken-breast", "baseRawGrams": 150 },
+      { "ingredientID": "tortilla-wholewheat", "baseRawGrams": 120 },
+      { "ingredientID": "bell-pepper", "baseRawGrams": 80 },
+      { "ingredientID": "onion", "baseRawGrams": 50 },
+      { "ingredientID": "greek-yogurt-0", "baseRawGrams": 40 }
+    ],
+    "steps": ["Sear sliced chicken with peppers and onion.", "Warm tortillas.", "Fill and top with yogurt."]
+  },
+  {
+    "id": "high-protein-pizza", "name": "High-protein tortilla pizza",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 20,
+    "methods": ["oven"], "batchSafe2Days": true, "husbandCompromise": true,
+    "lines": [
+      { "ingredientID": "tortilla-wholewheat", "baseRawGrams": 120 },
+      { "ingredientID": "passata", "baseRawGrams": 60 },
+      { "ingredientID": "mozzarella-part-skim", "baseRawGrams": 80 },
+      { "ingredientID": "chicken-breast", "baseRawGrams": 100 },
+      { "ingredientID": "bell-pepper", "baseRawGrams": 50 }
+    ],
+    "steps": ["Spread passata on tortillas.", "Top with mozzarella, chicken and peppers.", "Bake 10 min at 220°C."]
+  },
+  {
+    "id": "tuna-couscous-salad", "name": "Tuna couscous salad",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 10,
+    "methods": ["noCook"], "batchSafe2Days": true, "tiredDay": true,
+    "lines": [
+      { "ingredientID": "tuna-canned-water", "baseRawGrams": 120 },
+      { "ingredientID": "couscous-dry", "baseRawGrams": 70 },
+      { "ingredientID": "cucumber", "baseRawGrams": 100 },
+      { "ingredientID": "cherry-tomatoes", "baseRawGrams": 100 },
+      { "ingredientID": "olive-oil", "baseRawGrams": 8 }
+    ],
+    "steps": ["Soak couscous in boiling water 5 min.", "Fold through tuna, cucumber and tomatoes.", "Dress with oil."]
+  },
+  {
+    "id": "cottage-cheese-plate", "name": "Cottage cheese plate",
+    "suitableMealTypes": ["lunch", "dinner", "snack"], "prepMinutes": 5,
+    "methods": ["noCook"], "batchSafe2Days": true, "tiredDay": true,
+    "lines": [
+      { "ingredientID": "cottage-cheese", "baseRawGrams": 200 },
+      { "ingredientID": "bread-wholemeal", "baseRawGrams": 60 },
+      { "ingredientID": "cherry-tomatoes", "baseRawGrams": 100 },
+      { "ingredientID": "cucumber", "baseRawGrams": 100 }
+    ],
+    "steps": ["Plate cottage cheese with bread.", "Add tomatoes and cucumber."]
+  },
+  {
+    "id": "canned-salmon-plate", "name": "Canned salmon plate",
+    "suitableMealTypes": ["lunch", "dinner"], "prepMinutes": 6,
+    "methods": ["noCook"], "batchSafe2Days": true, "tiredDay": true,
+    "lines": [
+      { "ingredientID": "salmon-canned", "baseRawGrams": 110 },
+      { "ingredientID": "bread-wholemeal", "baseRawGrams": 60 },
+      { "ingredientID": "cottage-cheese", "baseRawGrams": 80 },
+      { "ingredientID": "cucumber", "baseRawGrams": 80 },
+      { "ingredientID": "cherry-tomatoes", "baseRawGrams": 80 }
+    ],
+    "steps": ["Flake salmon over bread.", "Add cottage cheese and salad."]
+  }
+]
