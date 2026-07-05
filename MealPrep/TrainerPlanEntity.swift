@@ -15,8 +15,12 @@ final class TrainerPlanEntity {
     /// Week-by-week toggle: if she hits Thursday gym, the 3rd cook session moves
     /// from Thursday to Friday.
     var gymThursday: Bool = false
-    /// Husband eats the same meals, scaled up (1.3–1.5×).
+    /// The partner eats the same meals, scaled up (1.3–1.5×).
     var husbandMultiplier: Double = 1.4
+    /// User-facing name for the second eater (editable in Settings). Defaults to
+    /// a generic "Partner". Inline default required for SwiftData lightweight
+    /// migration of stores created before this field existed.
+    var partnerName: String = "Partner"
     /// Reroll handle — bump to regenerate a different (still valid) week.
     var planSeed: Int = 42
 
@@ -35,7 +39,7 @@ final class TrainerPlanEntity {
     init(dailyKcal: Double = 1600, dailyProtein: Double = 130,
          dailyCarbs: Double = 150, dailyFat: Double = 50,
          mealsPerDay: Int = 4, gymThursday: Bool = false,
-         husbandMultiplier: Double = 1.4, planSeed: Int = 42,
+         husbandMultiplier: Double = 1.4, partnerName: String = "Partner", planSeed: Int = 42,
          groceryHour: Int = 9, groceryMinute: Int = 0,
          morningSummaryHour: Int = 7, morningSummaryMinute: Int = 0,
          eveningNudgeHour: Int = 20, eveningNudgeMinute: Int = 0) {
@@ -46,6 +50,7 @@ final class TrainerPlanEntity {
         self.mealsPerDay = mealsPerDay
         self.gymThursday = gymThursday
         self.husbandMultiplier = husbandMultiplier
+        self.partnerName = partnerName
         self.planSeed = planSeed
         self.groceryHour = groceryHour
         self.groceryMinute = groceryMinute
@@ -70,7 +75,9 @@ final class TrainerPlanEntity {
     }
 
     var husbandProfile: Profile {
-        Profile(id: "him", name: "Husband",
+        // `id` stays "him" (internal, avoids a data migration); the name is the
+        // user's editable, generic partner name.
+        Profile(id: "him", name: partnerName.isEmpty ? "Partner" : partnerName,
                 dailyTarget: daily * husbandMultiplier,
                 portionMultiplier: husbandMultiplier)
     }

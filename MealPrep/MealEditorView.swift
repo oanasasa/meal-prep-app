@@ -5,7 +5,7 @@ import MealPrepCore
 /// Edit one meal: rename, retag batch-safe/fresh-only, add/remove/re-gram
 /// ingredients — all with live day-total macro feedback against the profile's
 /// targets (colour-coded ±5%/±10%/beyond) so you can see the impact before
-/// saving. Grams are always "Her" base weights; the husband's total is shown
+/// saving. Grams are always "Her" base weights; the partner's total is shown
 /// too, scaled by his multiplier, to make the propagation visible.
 struct MealEditorView: View {
     let meal: MealEntity
@@ -23,6 +23,11 @@ struct MealEditorView: View {
     @State private var lines: [RecipeLine]
     @State private var showIngredientPicker = false
 
+    private var partnerLabel: String {
+        let trimmed = plan.partnerName.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? "Partner" : trimmed
+    }
+
     init(meal: MealEntity, variant: VariantEntity, plan: TrainerPlanEntity) {
         self.meal = meal
         self.variant = variant
@@ -39,7 +44,7 @@ struct MealEditorView: View {
             Form {
                 Section("Day total (with this edit)") {
                     DayTotalBanner(label: "Her", actual: herDayMacros, target: plan.daily)
-                    DayTotalBanner(label: "Husband (×\(String(format: "%.2f", plan.husbandMultiplier)))",
+                    DayTotalBanner(label: "\(partnerLabel) (×\(String(format: "%.2f", plan.husbandMultiplier)))",
                                   actual: hisDayMacros, target: plan.daily * plan.husbandMultiplier)
                 }
 
@@ -70,6 +75,8 @@ struct MealEditorView: View {
             }
             .navigationTitle(name.isEmpty ? "Edit Meal" : name)
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneButton()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -78,7 +85,10 @@ struct MealEditorView: View {
             }
             .sheet(isPresented: $showIngredientPicker) {
                 IngredientPickerView { ingredient in
-                    lines.append(RecipeLine(ingredientID: ingredient.id, baseRawGrams: 100))
+                    // Piece foods start at 1 piece; weighed foods start at 100 g.
+                    let start: Double = (ingredient.unit == .piece && (ingredient.gramsPerPiece ?? 0) > 0)
+                        ? (ingredient.gramsPerPiece ?? 100) : 100
+                    lines.append(RecipeLine(ingredientID: ingredient.id, baseRawGrams: start))
                 }
             }
         }
@@ -86,28 +96,70 @@ struct MealEditorView: View {
 
     // MARK: - Rows
 
+    @ViewBuilder
     private func lineRow(index: Int, line: RecipeLine) -> some View {
         let ingredient = model.ingredient(line.ingredientID)
-        return VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(ingredient?.name ?? line.ingredientID)
-                Spacer()
-                Text("\(Fmt.g(line.baseRawGrams)) g raw").monospacedDigit().foregroundStyle(.secondary)
+        let perPiece = ingredient?.gramsPerPiece ?? 0
+        let isPiece = ingredient?.unit == .piece && perPiece > 0
+
+        VStack(alignment: .leading, spacing: 6) {
+            Text(ingredient?.name ?? line.ingredientID)
+            if isPiece {
+                // Whole-item foods (eggs, tortillas…): enter pieces, not grams.
+                HStack(spacing: 10) {
+                    TextField("0", value: pieceBinding(at: index, gramsPerPiece: perPiece), format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 70)
+                    Text(pieceLabel(line.baseRawGrams / perPiece)).foregroundStyle(.secondary)
+                    Spacer()
+                    Text("\(Fmt.g(line.baseRawGrams)) g raw").font(.caption).foregroundStyle(.tertiary).monospacedDigit()
+                    Stepper(value: pieceBinding(at: index, gramsPerPiece: perPiece), in: 0...200, step: 1) {
+                        EmptyView()
+                    }.labelsHidden()
+                }
+            } else {
+                // Weighed foods: type grams directly, or nudge with ± (step 5 g).
+                HStack(spacing: 10) {
+                    TextField("0", value: gramsBinding(at: index), format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 80)
+                    Text(ingredient?.unit == .milliliter ? "ml" : "g raw").foregroundStyle(.secondary)
+                    Spacer()
+                    Stepper(value: gramsBinding(at: index), in: 0...5000, step: 5) {
+                        EmptyView()
+                    }.labelsHidden()
+                }
             }
-            Stepper(value: gramsBinding(at: index), in: 0...2000, step: 5) {
-                EmptyView()
-            }
-            .labelsHidden()
         }
         .padding(.vertical, 2)
     }
 
+    private func pieceLabel(_ count: Double) -> String {
+        abs(count - 1) < 0.01 ? "piece" : "pieces"
+    }
+
     private func gramsBinding(at index: Int) -> Binding<Double> {
         Binding(
-            get: { lines[index].baseRawGrams },
+            get: { index < lines.count ? lines[index].baseRawGrams : 0 },
             set: { newValue in
+                guard index < lines.count else { return }
                 let id = lines[index].ingredientID
                 lines[index] = RecipeLine(ingredientID: id, baseRawGrams: max(0, newValue))
+            }
+        )
+    }
+
+    /// Reads/writes the line in pieces, converting to the stored raw grams via
+    /// the ingredient's grams-per-piece.
+    private func pieceBinding(at index: Int, gramsPerPiece: Double) -> Binding<Double> {
+        Binding(
+            get: { index < lines.count ? lines[index].baseRawGrams / gramsPerPiece : 0 },
+            set: { pieces in
+                guard index < lines.count else { return }
+                let id = lines[index].ingredientID
+                lines[index] = RecipeLine(ingredientID: id, baseRawGrams: max(0, pieces) * gramsPerPiece)
             }
         )
     }

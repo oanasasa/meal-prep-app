@@ -10,9 +10,12 @@ struct SubstituteContext: Identifiable {
     let target: MacroVector
 }
 
-/// Wraps a cook session id so it can drive a `.sheet(item:)`.
+/// Wraps a cook session id so it can drive a `.sheet(item:)`. `weekStart` lets
+/// the caller mark a session against a specific week — the Sunday prep card uses
+/// it to record against the *upcoming* week, not the one that's ending.
 struct CookModeContext: Identifiable {
     let id: String
+    var weekStart: Date? = nil
 }
 
 struct HomeView: View {
@@ -20,22 +23,53 @@ struct HomeView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.modelContext) private var context
     @Query private var logs: [DailyLogEntity]
+    @Query private var cookLogs: [CookSessionLogEntity]
     @State private var substitute: SubstituteContext?
     @State private var cookModeContext: CookModeContext?
 
     private var today: VariantDay? { model.todaysVariantDay(for: plan) }
     private var todayOffset: Int { AppModel.todayOffset() }
 
+    /// The prep session the user would actually cook TODAY, the week it prepares,
+    /// and whether it's already been marked cooked — the single source of truth
+    /// for the home status, so it never *assumes* things are cooked. Sunday preps
+    /// the *upcoming* week (the trainer's "Sunday prep" covers next Mon+Tue), so
+    /// its cooked-state is tracked against next Monday, not the week that's ending.
+    private struct TodayPrep {
+        let session: CookSession
+        let weekStart: Date
+        let isCooked: Bool
+    }
+
+    private var todayPrep: TodayPrep? {
+        let sessions = CookScheduler.sessions(gymThursday: plan.gymThursday)
+        let monday = AppModel.currentMonday()
+        if todayOffset == CookScheduler.tiredDayOffset {   // Sunday → prep next week
+            guard let s = sessions.first(where: { $0.id == "sun-prep" }) else { return nil }
+            let nextMonday = Calendar.current.date(byAdding: .day, value: 7, to: monday) ?? monday
+            return TodayPrep(session: s, weekStart: nextMonday, isCooked: sessionCooked(s.id, weekStart: nextMonday))
+        }
+        // Mon–Sat: a session whose cook weekday is today (Tuesday, Thursday/Friday).
+        guard let s = sessions.first(where: { (($0.cookDayOffset % 7) + 7) % 7 == todayOffset }) else { return nil }
+        return TodayPrep(session: s, weekStart: monday, isCooked: sessionCooked(s.id, weekStart: monday))
+    }
+
+    private func sessionCooked(_ sessionID: String, weekStart: Date) -> Bool {
+        let key = CookSessionLogEntity.key(weekStart: weekStart, sessionID: sessionID)
+        return cookLogs.first { $0.sessionKey == key }?.isCooked ?? false
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
                     if let err = model.loadError { errorCard(err) }
-                    if let week = model.variantWeek(for: plan) { cookCountdownCard(week) }
+                    if let week = model.variantWeek(for: plan), !week.days.allSatisfy(\.meals.isEmpty) {
+                        prepStatusCard(week)
+                    }
                     if today != nil {
                         dayTotalCard
                         ForEach(today?.meals ?? []) { meal in mealCard(meal) }
-                        substituteButton
                     } else if model.loadError == nil {
                         ContentUnavailableView("No meals today", systemImage: "fork.knife",
                                                description: Text("Check your macro plan in the Plan tab."))
@@ -53,7 +87,7 @@ struct HomeView: View {
                 SubstituteView(title: ctx.title, lines: ctx.lines, target: ctx.target)
             }
             .sheet(item: $cookModeContext) { ctx in
-                CookModeView(sessionID: ctx.id, plan: plan)
+                CookModeView(sessionID: ctx.id, plan: plan, weekStart: ctx.weekStart)
             }
         }
     }
@@ -65,7 +99,11 @@ struct HomeView: View {
     // MARK: - Meals
 
     private var dayTotalCard: some View {
+        // Derived live from `model` (rebuilt on every edit via `reload`), so this
+        // card — and its vs-target delta — recalculates the instant a meal changes.
         let total = MacroVector.sum(today?.meals.map(\.herMacros) ?? [])
+        let delta = MacroDelta(target: plan.daily, actual: total)
+        let tier = ToleranceTier(delta)
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("TODAY · \(today?.variantID ?? "—")")
@@ -75,6 +113,11 @@ struct HomeView: View {
                     .font(.caption).foregroundStyle(.tertiary)
             }
             MacroSummary(macros: total)
+            HStack(spacing: 6) {
+                Image(systemName: tier == .good ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                Text("\(Fmt.signed(delta.absolute.kcal)) kcal vs target")
+            }
+            .font(.subheadline.weight(.semibold)).foregroundStyle(tier.color)
         }
         .padding()
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
@@ -108,46 +151,47 @@ struct HomeView: View {
         .buttonStyle(.plain)
     }
 
-    private var substituteButton: some View {
-        Button {
-            if let first = today?.meals.first {
-                substitute = SubstituteContext(title: first.meal.name,
-                                               lines: first.meal.lines,
-                                               target: first.herMacros)
-            }
-        } label: {
-            Label("Something's missing → substitute", systemImage: "arrow.triangle.2.circlepath")
-                .font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
+
+    /// Home's cook status. On a prep day it reflects the ACTUAL cooked-state of
+    /// today's session (never assumed); on other days it points at the next
+    /// session that still needs cooking.
+    @ViewBuilder
+    private func prepStatusCard(_ week: VariantWeek) -> some View {
+        if let prep = todayPrep {
+            prepDayCard(prep, week: week)
+        } else {
+            nextSessionCard(week)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .disabled((today?.meals.isEmpty ?? true))
     }
 
-    private func cookCountdownCard(_ week: VariantWeek) -> some View {
-        let next = week.cookSessions.first { $0.cookDayOffset >= todayOffset }
+    private func prepDayCard(_ prep: TodayPrep, week: VariantWeek) -> some View {
+        let mealCount = week.meals(inSession: prep.session.id).count
+        let covers = prep.session.coversDayOffsets
+            .map { CookScheduler.weekdayName(forOffset: $0) }.joined(separator: " + ")
         return Button {
-            if let next { cookModeContext = CookModeContext(id: next.id) }
+            if !prep.isCooked {
+                cookModeContext = CookModeContext(id: prep.session.id, weekStart: prep.weekStart)
+            }
         } label: {
             HStack(spacing: 14) {
-                Image(systemName: next == nil ? "checkmark.circle.fill" : "timer")
+                Image(systemName: prep.isCooked ? "checkmark.seal.fill" : "flame.fill")
                     .font(.title2).foregroundStyle(.white)
                     .frame(width: 44, height: 44)
-                    .background(.green, in: RoundedRectangle(cornerRadius: 12))
+                    .background(prep.isCooked ? .green : .orange, in: RoundedRectangle(cornerRadius: 12))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Next cook session").font(.subheadline).foregroundStyle(.secondary)
-                    if let next {
-                        Text("\(next.title) · \(CookScheduler.weekdayName(forOffset: next.cookDayOffset))")
-                            .font(.headline)
-                        Text("Cooks for " + next.coversDayOffsets
-                            .map { CookScheduler.weekdayName(forOffset: $0) }.joined(separator: " + "))
+                    if prep.isCooked {
+                        Text("All cooked ✓").font(.headline)
+                        Text("\(prep.session.title) done · covers \(covers)")
                             .font(.caption).foregroundStyle(.secondary)
                     } else {
-                        Text("All cooked — nothing to prep today").font(.headline)
+                        Text("Prep day today").font(.subheadline).foregroundStyle(.secondary)
+                        Text("\(prep.session.title): \(mealCount) meal\(mealCount == 1 ? "" : "s") to cook")
+                            .font(.headline)
+                        Text("Covers \(covers)").font(.caption).foregroundStyle(.secondary)
                     }
                 }
                 Spacer()
-                if next != nil {
+                if !prep.isCooked {
                     Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
                 }
             }
@@ -155,7 +199,47 @@ struct HomeView: View {
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
-        .disabled(next == nil)
+        .disabled(prep.isCooked)
+    }
+
+    private func nextSessionCard(_ week: VariantWeek) -> some View {
+        // Non-prep day: the next session this week that hasn't been cooked yet.
+        let monday = AppModel.currentMonday()
+        let upcoming = week.cookSessions
+            .filter { $0.cookDayOffset >= todayOffset && !sessionCooked($0.id, weekStart: monday) }
+            .sorted { $0.cookDayOffset < $1.cookDayOffset }
+            .first
+        return Button {
+            if let upcoming { cookModeContext = CookModeContext(id: upcoming.id) }
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: upcoming == nil ? "checkmark.circle.fill" : "timer")
+                    .font(.title2).foregroundStyle(.white)
+                    .frame(width: 44, height: 44)
+                    .background(.green, in: RoundedRectangle(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 2) {
+                    if let upcoming {
+                        Text("Next cook session").font(.subheadline).foregroundStyle(.secondary)
+                        Text("\(upcoming.title) · \(CookScheduler.weekdayName(forOffset: upcoming.cookDayOffset))")
+                            .font(.headline)
+                        Text("Cooks for " + upcoming.coversDayOffsets
+                            .map { CookScheduler.weekdayName(forOffset: $0) }.joined(separator: " + "))
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Text("No cooking scheduled today").font(.headline)
+                        Text("You're prepped through the week.").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                if upcoming != nil {
+                    Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                }
+            }
+            .padding()
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .disabled(upcoming == nil)
     }
 
     // MARK: - Supplements

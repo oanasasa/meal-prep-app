@@ -7,10 +7,15 @@ import MealPrepCore
 /// here builds a new one from scratch.
 struct VariantsListView: View {
     let plan: TrainerPlanEntity
+    /// When true (from the Plan tab's "Add your own…" item), immediately create a
+    /// blank variant and push straight into its editor.
+    var startByAddingVariant: Bool = false
 
     @Environment(\.modelContext) private var context
     @Environment(AppModel.self) private var model
     @Query(sort: \VariantEntity.sortOrder) private var variantEntities: [VariantEntity]
+    @State private var newVariant: VariantEntity?
+    @State private var didAutoAdd = false
 
     var body: some View {
         List {
@@ -32,21 +37,40 @@ struct VariantsListView: View {
                     }
                 }
             }
+
+            Section {
+                Button { newVariant = addFromScratch() } label: {
+                    Label("Add a new variant", systemImage: "plus.circle.fill")
+                }
+            } footer: {
+                Text("Build a day's meals from scratch, or open one above and tap \u{201C}Duplicate\u{201D} to start from a copy.")
+            }
         }
         .navigationTitle("Meal Plan Variants")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button { addFromScratch() } label: { Image(systemName: "plus") }
+                Button { newVariant = addFromScratch() } label: { Image(systemName: "plus") }
+            }
+        }
+        .navigationDestination(item: $newVariant) { variant in
+            VariantDetailView(variant: variant, plan: plan)
+        }
+        .onAppear {
+            if startByAddingVariant && !didAutoAdd {
+                didAutoAdd = true
+                newVariant = addFromScratch()
             }
         }
     }
 
-    private func addFromScratch() {
+    @discardableResult
+    private func addFromScratch() -> VariantEntity {
         let newID = "variant-\(UUID().uuidString.prefix(8))"
         let variant = VariantEntity(variantID: newID, name: "New Variant", isActive: true,
                                     sortOrder: variantEntities.count)
         context.insert(variant)
         try? context.save()
         model.reload(context: context)
+        return variant
     }
 }

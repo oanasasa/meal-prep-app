@@ -62,7 +62,13 @@ struct RootView: View {
                 OnboardingView()
             } else {
                 ProgressView().task {
-                    PlanDataSeeder.seedIfNeeded(context: context)
+                    // Only auto-seed for a returning user who already has a plan
+                    // (e.g. upgrading from before the editable-plan phase). A
+                    // brand-new user picks example-vs-empty during onboarding, so
+                    // we must NOT seed ahead of that choice.
+                    if !plans.isEmpty {
+                        PlanDataSeeder.seedIfNeeded(context: context)
+                    }
                     model.reload(context: context)
                     seeded = true
                 }

@@ -47,29 +47,31 @@ struct InventoryView: View {
         } ?? false
         let age = MealPrepCore.FridgeExpiry.ageInDays(addedDate: item.addedDate)
 
-        return HStack {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(ingredient?.name ?? item.ingredientID).font(.subheadline)
-                if expired {
-                    Label("Do not eat — \(age)d old", systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption2).foregroundStyle(.red)
-                } else if ingredient?.isPerishableProtein == true {
-                    Text(age == 0 ? "Added today" : "\(age)d old")
-                        .font(.caption2).foregroundStyle(.secondary)
+        // Whole row is tappable to decrement (matching the trailing minus button),
+        // not just the icon. Swipe-to-delete still removes the item entirely.
+        return Button {
+            decrement(item)
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(ingredient?.name ?? item.ingredientID).font(.subheadline).foregroundStyle(.primary)
+                    if expired {
+                        Label("Do not eat — \(age)d old", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption2).foregroundStyle(.red)
+                    } else if ingredient?.isPerishableProtein == true {
+                        Text(age == 0 ? "Added today" : "\(age)d old")
+                            .font(.caption2).foregroundStyle(.secondary)
+                    }
                 }
+                Spacer()
+                Text(displayQuantity(item, ingredient: ingredient))
+                    .font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
+                Image(systemName: "minus.circle.fill").font(.title3).foregroundStyle(.tint)
             }
-            Spacer()
-            Text(displayQuantity(item, ingredient: ingredient))
-                .font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
-            Button {
-                decrement(item)
-            } label: {
-                Image(systemName: "minus.circle.fill").font(.title3)
-            }
-            .buttonStyle(.plain)
-            .tint(.accentColor)
+            .contentShape(Rectangle())
+            .opacity(expired ? 0.5 : 1.0)
         }
-        .opacity(expired ? 0.5 : 1.0)
+        .buttonStyle(.plain)
     }
 
     private func displayQuantity(_ item: FridgeItemEntity, ingredient: Ingredient?) -> String {
@@ -131,6 +133,8 @@ struct AddFridgeItemView: View {
                 }
             }
             .navigationTitle("Add to Fridge")
+            .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneButton()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {

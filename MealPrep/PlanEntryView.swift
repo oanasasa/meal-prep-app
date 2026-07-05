@@ -8,7 +8,14 @@ struct PlanEntryView: View {
     @Bindable var plan: TrainerPlanEntity
     @Environment(AppModel.self) private var model
     @Query(sort: \VariantEntity.sortOrder) private var variantEntities: [VariantEntity]
+    @Environment(\.modelContext) private var context
     @State private var showGroceryList = false
+    @State private var showResetConfirm = false
+
+    private var partnerLabel: String {
+        let trimmed = plan.partnerName.trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? "Partner" : trimmed
+    }
 
     /// Active variants whose day total (at the CURRENTLY-TYPED targets, before
     /// saving) drifts outside ±5% of the new daily kcal target — "the trainer
@@ -52,13 +59,44 @@ struct PlanEntryView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
 
-                Section("Husband portions") {
+                Section("Partner portions") {
+                    TappableFieldRow(label: "Name") { focus in
+                        TextField("Partner", text: $plan.partnerName)
+                            .multilineTextAlignment(.trailing)
+                            .focused(focus)
+                    }
                     Stepper(value: $plan.husbandMultiplier, in: 1.0...2.0, step: 0.05) {
                         Text("Multiplier ×\(plan.husbandMultiplier, specifier: "%.2f")")
                     }
-                    Text("His day ≈ \(Fmt.g(plan.dailyKcal * plan.husbandMultiplier)) kcal · "
+                    Text("\(partnerLabel)'s day ≈ \(Fmt.g(plan.dailyKcal * plan.husbandMultiplier)) kcal · "
                          + "\(Fmt.g(plan.dailyProtein * plan.husbandMultiplier))g protein")
                         .font(.caption).foregroundStyle(.secondary)
+                }
+
+                Section("Meal plan") {
+                    NavigationLink {
+                        VariantsListView(plan: plan)
+                    } label: {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Edit meal plan").font(.body)
+                                Text("Change meals, add your own variants & ingredients")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "square.and.pencil").foregroundStyle(.tint)
+                        }
+                    }
+
+                    NavigationLink {
+                        VariantsListView(plan: plan, startByAddingVariant: true)
+                    } label: {
+                        Label("Add your own meal or variant", systemImage: "plus.circle")
+                    }
+
+                    Button(role: .destructive) { showResetConfirm = true } label: {
+                        Label("Reset to default plan", systemImage: "arrow.counterclockwise")
+                    }
                 }
 
                 Section("Weekly plan") {
@@ -67,17 +105,11 @@ struct PlanEntryView: View {
                     } label: {
                         Label("Shift variant rotation", systemImage: "arrow.triangle.2.circlepath")
                     }
-                    Text("Rotates which trainer variant (V1–V4) starts the week.")
+                    Text("Rotates which variant starts the week.")
                         .font(.caption).foregroundStyle(.secondary)
 
                     Button { showGroceryList = true } label: {
                         Label("View grocery list", systemImage: "cart.fill")
-                    }
-
-                    NavigationLink {
-                        VariantsListView(plan: plan)
-                    } label: {
-                        Label("Edit meal plan variants", systemImage: "square.and.pencil")
                     }
                 }
 
@@ -90,7 +122,18 @@ struct PlanEntryView: View {
                 }
             }
             .navigationTitle("Your Plan")
+            .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneButton()
             .sheet(isPresented: $showGroceryList) { GroceryListView(plan: plan) }
+            .confirmationDialog("Reset to the default plan?", isPresented: $showResetConfirm, titleVisibility: .visible) {
+                Button("Reset plan", role: .destructive) {
+                    PlanDataSeeder.resetToDefault(context: context)
+                    model.reload(context: context)
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This discards all your custom variants, meals, and edits, and restores the example plan. This can't be undone.")
+            }
             .onChange(of: plan.gymThursday) { _, newValue in
                 // Thursday gym affects the cook schedule, creatine timing, and
                 // which sessions the evening nudges attach to.
@@ -147,15 +190,13 @@ struct PlanEntryView: View {
     }
 
     private func macroField(_ label: String, value: Binding<Double>, unit: String) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
+        TappableFieldRow(label: label, unit: unit) { focus in
             TextField(label, value: value, format: .number)
                 .multilineTextAlignment(.trailing)
                 .keyboardType(.decimalPad)
                 .frame(maxWidth: 90)
                 .minimumScaleFactor(0.5)
-            Text(unit).foregroundStyle(.secondary)
+                .focused(focus)
         }
     }
 

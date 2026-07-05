@@ -5,6 +5,9 @@ import MealPrepCore
 struct CookModeView: View {
     let sessionID: String
     let plan: TrainerPlanEntity
+    /// The week to record this cook against. Defaults to the current week; the
+    /// Sunday prep card passes the *upcoming* Monday so it logs against next week.
+    var weekStart: Date? = nil
 
     @Environment(AppModel.self) private var model
     @Environment(\.modelContext) private var context
@@ -19,7 +22,7 @@ struct CookModeView: View {
         return model.cookPlan(sessionID: sessionID, week: week, plan: plan)
     }
     private var sessionKey: String {
-        CookSessionLogEntity.key(weekStart: AppModel.currentMonday(), sessionID: sessionID)
+        CookSessionLogEntity.key(weekStart: weekStart ?? AppModel.currentMonday(), sessionID: sessionID)
     }
     private var log: CookSessionLogEntity? { cookLogs.first { $0.sessionKey == sessionKey } }
     private var isCooked: Bool { log?.isCooked ?? false }

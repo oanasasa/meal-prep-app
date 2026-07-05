@@ -7,6 +7,7 @@ import MealPrepCore
 /// again later in the Plan tab, so nothing here needs to be perfect.
 struct OnboardingView: View {
     @Environment(\.modelContext) private var context
+    @Environment(AppModel.self) private var model
     @State private var page = 0
 
     // Mirrors TrainerPlanEntity's own defaults, so skipping straight through
@@ -18,6 +19,9 @@ struct OnboardingView: View {
     @State private var mealsPerDay: Int = 4
     @State private var gymThursday = false
     @State private var husbandMultiplier: Double = 1.4
+    /// Whether to load the built-in example variants or start with an empty plan
+    /// the user builds themselves (the seeded data is the author's own plan).
+    @State private var useExamplePlan = true
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,6 +36,8 @@ struct OnboardingView: View {
             navigationBar
         }
         .background(Color(.systemGroupedBackground))
+        .scrollDismissesKeyboard(.interactively)
+        .keyboardDoneButton()
     }
 
     // MARK: - Page 1: Macros
@@ -55,15 +61,13 @@ struct OnboardingView: View {
     }
 
     private func macroField(_ label: String, value: Binding<Double>, unit: String) -> some View {
-        HStack {
-            Text(label).font(.body)
-            Spacer()
+        TappableFieldRow(label: label, unit: unit) { focus in
             TextField(label, value: value, format: .number)
                 .multilineTextAlignment(.trailing)
                 .keyboardType(.decimalPad)
                 .frame(maxWidth: 90)
                 .minimumScaleFactor(0.5)
-            Text(unit).foregroundStyle(.secondary)
+                .focused(focus)
         }
         .padding()
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
@@ -82,11 +86,27 @@ struct OnboardingView: View {
                 .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("Husband portions", systemImage: "person.2.fill").font(.subheadline.weight(.semibold))
+                    Label("Partner portions", systemImage: "person.2.fill").font(.subheadline.weight(.semibold))
                     Stepper(value: $husbandMultiplier, in: 1.0...2.0, step: 0.05) {
                         Text("Multiplier ×\(husbandMultiplier, specifier: "%.2f")")
                     }
-                    Text("He eats the same meals, scaled up.")
+                    Text("They eat the same meals, scaled up.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("Meal plan", systemImage: "list.bullet.rectangle").font(.subheadline.weight(.semibold))
+                    Picker("Meal plan", selection: $useExamplePlan) {
+                        Text("Use example plan").tag(true)
+                        Text("Build my own").tag(false)
+                    }
+                    .pickerStyle(.segmented)
+                    Text(useExamplePlan
+                         ? "Starts you off with a set of ready-made day variants you can edit."
+                         : "Starts empty — you'll add your own variants and meals in the Plan tab.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 .padding()
@@ -148,6 +168,12 @@ struct OnboardingView: View {
                                      husbandMultiplier: husbandMultiplier)
         context.insert(plan)
         try? context.save()
+        // Load the example variants only if the user asked for them; otherwise
+        // they start with an empty plan and build it in the Plan tab.
+        if useExamplePlan {
+            PlanDataSeeder.seed(context: context)
+        }
+        model.reload(context: context)
     }
 }
 

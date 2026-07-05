@@ -22,6 +22,10 @@ struct VariantDetailView: View {
         List {
             Section("Day total (Her)") {
                 MacroSummary(macros: dayMacros)
+                let delta = MacroDelta(target: plan.daily, actual: dayMacros)
+                let tier = ToleranceTier(delta)
+                Text("\(Fmt.signed(delta.absolute.kcal)) kcal vs target")
+                    .font(.caption.weight(.semibold)).foregroundStyle(tier.color)
             }
 
             Section {

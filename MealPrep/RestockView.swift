@@ -17,35 +17,49 @@ struct RestockView: View {
     /// for a trip where most things go as planned.
     @State private var found: [String: Bool] = [:]
     @State private var substituteContext: SubstituteContext?
+    @State private var showClearConfirm = false
 
     private var items: [GroceryItem] { model.groceryItems(for: plan) }
     private var missingItems: [GroceryItem] { items.filter { found[$0.id] == false } }
 
     var body: some View {
         NavigationStack {
-            Group {
+            List {
+                // Start-fresh: empty the whole fridge/pantry before checking off a
+                // new shop. Sits at the top of the flow so it's the first thing.
+                if !fridgeEntities.isEmpty {
+                    Section {
+                        Button(role: .destructive) { showClearConfirm = true } label: {
+                            Label("Clear fridge & pantry (\(fridgeEntities.count) item\(fridgeEntities.count == 1 ? "" : "s"))",
+                                  systemImage: "trash")
+                        }
+                    } footer: {
+                        Text("Empties everything so you can start fresh, then check off your new shopping below.")
+                    }
+                }
+
                 if items.isEmpty {
-                    ContentUnavailableView("Nothing to restock", systemImage: "checkmark.circle",
-                                           description: Text("There's no grocery list to check off right now."))
+                    Section {
+                        ContentUnavailableView("Nothing to restock", systemImage: "checkmark.circle",
+                                               description: Text("There's no grocery list to check off right now."))
+                    }
                 } else {
-                    List {
-                        Section("Check off what you found") {
-                            ForEach(items) { item in
-                                Toggle(isOn: bindingFor(item)) {
-                                    HStack {
-                                        Text(item.name)
-                                        Spacer()
-                                        Text(item.displayQuantity).foregroundStyle(.secondary)
-                                    }
+                    Section("Check off what you found") {
+                        ForEach(items) { item in
+                            Toggle(isOn: bindingFor(item)) {
+                                HStack {
+                                    Text(item.name)
+                                    Spacer()
+                                    Text(item.displayQuantity).foregroundStyle(.secondary)
                                 }
                             }
                         }
+                    }
 
-                        if !missingItems.isEmpty {
-                            Section("Affected by what's missing") {
-                                ForEach(missingItems) { item in
-                                    missingItemRow(item)
-                                }
+                    if !missingItems.isEmpty {
+                        Section("Affected by what's missing") {
+                            ForEach(missingItems) { item in
+                                missingItemRow(item)
                             }
                         }
                     }
@@ -60,10 +74,21 @@ struct RestockView: View {
             .sheet(item: $substituteContext) { ctx in
                 SubstituteView(title: ctx.title, lines: ctx.lines, target: ctx.target)
             }
+            .confirmationDialog("Remove all \(fridgeEntities.count) item\(fridgeEntities.count == 1 ? "" : "s") from your fridge & pantry?",
+                                isPresented: $showClearConfirm, titleVisibility: .visible) {
+                Button("Clear all", role: .destructive) { clearAll() }
+                Button("Cancel", role: .cancel) {}
+            }
             .onAppear {
                 for item in items where found[item.id] == nil { found[item.id] = true }
             }
         }
+    }
+
+    /// Empties the entire fridge/pantry so the user can rebuild it from the new shop.
+    private func clearAll() {
+        for entity in fridgeEntities { context.delete(entity) }
+        try? context.save()
     }
 
     private func bindingFor(_ item: GroceryItem) -> Binding<Bool> {

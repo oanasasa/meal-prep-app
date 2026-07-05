@@ -127,6 +127,8 @@ struct AddIngredientView: View {
             }
             .navigationTitle("New Ingredient")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.interactively)
+            .keyboardDoneButton()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -137,15 +139,13 @@ struct AddIngredientView: View {
     }
 
     private func numberField(_ label: String, _ value: Binding<String>, _ unit: String) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
+        TappableFieldRow(label: label, unit: unit) { focus in
             TextField("0", text: value)
                 .multilineTextAlignment(.trailing)
                 .keyboardType(.decimalPad)
                 .frame(maxWidth: 90)
                 .minimumScaleFactor(0.5)
-            Text(unit).foregroundStyle(.secondary)
+                .focused(focus)
         }
     }
 

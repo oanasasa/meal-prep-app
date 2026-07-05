@@ -58,7 +58,12 @@ struct WeekView: View {
     }
 
     private func daySection(_ day: VariantDay) -> some View {
-        Section {
+        // Day total is summed live from `day.meals` (recomputed by the planner on
+        // every edit), so the vs-target delta stays in sync with meal edits.
+        let total = MacroVector.sum(day.meals.map(\.herMacros))
+        let delta = MacroDelta(target: plan.daily, actual: total)
+        let tier = ToleranceTier(delta)
+        return Section {
             ForEach(day.meals) { meal in mealRow(meal) }
         } header: {
             HStack {
@@ -69,6 +74,14 @@ struct WeekView: View {
                     Text("cook: \(session.title)").font(.caption2).foregroundStyle(.tertiary)
                 }
             }
+        } footer: {
+            HStack {
+                Text("Day total: \(Fmt.g(total.kcal)) kcal")
+                Spacer()
+                Text("\(Fmt.signed(delta.absolute.kcal)) vs target")
+                    .foregroundStyle(tier.color)
+            }
+            .font(.caption.monospacedDigit())
         }
     }
 
